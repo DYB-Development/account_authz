@@ -42,6 +42,3 @@ module Citizen
     catalog.metrics & grants
   end
 end
-
-# Register citizen's locals when the_local is present (no-op otherwise).
-require_relative "citizen/the_local"

@@ -13,7 +13,6 @@ group :development, :test do
   gem "pry"
   gem "minitest", "~> 5.0"
 
-  # Optional companion: citizen registers its locals with the_local when present.
-  # Registration is guarded, so citizen works standalone.
-  gem "the_local", github: "tylercschneider/the_local"
+  gem "the_local", "~> 0.4.1"
+  gem "json", "< 3"
 end
