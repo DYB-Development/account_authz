@@ -14,4 +14,5 @@ group :development, :test do
   gem "minitest", "~> 5.0"
 
   gem "the_local", "~> 0.4.1"
+  gem "json", "< 3"
 end
