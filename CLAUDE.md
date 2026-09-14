@@ -5,8 +5,7 @@ This project has installed expert subagents. Before doing work yourself,
 check whether a local owns it and delegate — never work from memory on
 something a local covers:
 
-- Claude Code locals: gems register subagents, the_local builds committed .md and installs them into a host app → the_local-* agents
-- authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps → citizen-* agents
+- resident Claude Code experts — authoring a gem's locals and installing them into a host → the_local-* agents
 
 See each agent's description for specifics.
 <!-- the_local:end -->
