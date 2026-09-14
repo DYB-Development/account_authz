@@ -1,0 +1,43 @@
+scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
+
+install:
+  - gem "citizen"
+  - bin/rails citizen:install:migrations
+  - Citizen::Member
+  - Citizen::Authorization
+  - Citizen::Current.account_id
+
+develop:
+  - Citizen.catalog
+  - Citizen.catalog.permissions
+  - Citizen.catalog.metrics
+  - Citizen.capabilities
+  - Citizen.reset!
+  - Citizen.can?
+  - Citizen.approved_metrics
+  - Citizen::Role.in_account
+  - Citizen::Role.create!
+  - Citizen::Role.from_template
+  - Citizen.templates
+  - Citizen.templates.find
+  - Citizen.templates.defaults
+  - Citizen.seed_default_roles
+  - member.assign_role
+  - member.revoke_role
+  - member.citizen_roles
+  - member.capabilities
+  - member.can?
+  - member.approved_metrics
+  - Citizen::ApplicationPolicy
+
+sources:
+  - lib/citizen.rb
+  - lib/citizen/catalog.rb
+  - lib/citizen/templates.rb
+  - lib/citizen/engine.rb
+  - lib/citizen/reference/guide.md
+  - app/models/citizen/role.rb
+  - app/models/citizen/current.rb
+  - app/models/concerns/citizen/member.rb
+  - app/controllers/concerns/citizen/authorization.rb
+  - app/policies/citizen/application_policy.rb
