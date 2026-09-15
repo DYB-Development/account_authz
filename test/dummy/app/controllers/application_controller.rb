@@ -7,6 +7,6 @@ class ApplicationController < ActionController::Base
   private
 
   def current_member
-    ::Member.find_by(id: params[:member_id])
+    ::Member.find_by(id: params[:signed_in_member_id])
   end
 end
