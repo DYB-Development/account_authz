@@ -42,5 +42,11 @@ module Citizen
 
       assert Reach.new(@lead, account_id: 1).includes_role?(worker)
     end
+
+    test "a manager at the account's top rank reaches a role at the same rank" do
+      co_lead = Role.create!(account_id: 1, name: "Co-lead", rank: 1, capabilities: [])
+
+      assert Reach.new(@lead, account_id: 1).includes_role?(co_lead)
+    end
   end
 end

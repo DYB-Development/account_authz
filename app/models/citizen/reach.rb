@@ -12,7 +12,7 @@ module Citizen
     end
 
     def includes_role?(role)
-      role.rank < own_rank
+      top_rank? || role.rank < own_rank
     end
 
     private
