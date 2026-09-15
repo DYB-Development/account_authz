@@ -235,5 +235,11 @@ module Citizen
 
       assert_not Role.exists?(name: "Exporter")
     end
+
+    test "the roles page links back to the members page" do
+      get "/citizen/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_select "a[href='/citizen/members']", text: "Members"
+    end
   end
 end
