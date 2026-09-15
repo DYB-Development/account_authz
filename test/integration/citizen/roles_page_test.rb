@@ -56,5 +56,11 @@ module Citizen
 
       assert_not_includes response.body, "Other Account Role"
     end
+
+    test "a member who can manage roles creates a role in the current account" do
+      post "/citizen/roles", params: { role: { name: "Pretend Role" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert Role.in_account(1).exists?(name: "Pretend Role")
+    end
   end
 end
