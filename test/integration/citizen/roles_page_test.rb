@@ -176,5 +176,15 @@ module Citizen
 
       assert_equal %w[manage_members], manager_role.reload.capabilities
     end
+
+    test "a manager refused taking the members capability off the only role that grants it is told why" do
+      Citizen.catalog { permission :manage_members }
+      manager_role = Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members])
+      @admin.assign_role(manager_role)
+
+      patch "/citizen/roles/#{manager_role.id}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
+    end
   end
 end
