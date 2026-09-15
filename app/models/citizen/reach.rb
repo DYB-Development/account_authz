@@ -8,10 +8,18 @@ module Citizen
     end
 
     def includes_member?(member)
-      highest_rank(member) < highest_rank(@manager)
+      top_rank? || highest_rank(member) < own_rank
     end
 
     private
+
+    def top_rank?
+      own_rank.finite? && own_rank >= Role.in_account(@account_id).maximum(:rank)
+    end
+
+    def own_rank
+      @own_rank ||= highest_rank(@manager)
+    end
 
     def highest_rank(member)
       member.citizen_roles.in_account(@account_id).maximum(:rank) || -Float::INFINITY
