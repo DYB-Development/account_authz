@@ -68,5 +68,15 @@ module Citizen
 
       assert_includes response.body, "Pretend Role"
     end
+
+    test "the members page leaves out roles a member holds in another account" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      manager.assign_role(Role.create!(account_id: 2, name: "Other Account Role", capabilities: []))
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_not_includes response.body, "Other Account Role"
+    end
   end
 end
