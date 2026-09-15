@@ -223,5 +223,14 @@ module Citizen
 
       assert_select "a[href='/citizen/roles']", text: "Roles"
     end
+
+    test "the members page does not link a viewer who cannot manage roles to the roles page" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "a[href='/citizen/roles']", count: 0
+    end
   end
 end

@@ -1,5 +1,5 @@
 <%= ui_page(max_width: :lg) do %>
-  <%= ui_section(title: "Members", action: { label: "Roles", href: roles_path }) do %>
+  <%= ui_section(title: "Members", action: (can?(Citizen.roles_capability) ? { label: "Roles", href: roles_path } : nil)) do %>
     <%= ui_grid(cols: { default: 1 }, gap: :md) do %>
       <%= ui_panel do %>
         <%= ui_form(action: invitations_path) do %>
