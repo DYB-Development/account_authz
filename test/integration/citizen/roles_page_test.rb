@@ -48,5 +48,13 @@ module Citizen
 
       assert_includes response.body, "Pretend Role"
     end
+
+    test "the roles page leaves out another account's roles" do
+      Role.create!(account_id: 2, name: "Other Account Role", capabilities: [])
+
+      get "/citizen/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not_includes response.body, "Other Account Role"
+    end
   end
 end
