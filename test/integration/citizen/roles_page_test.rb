@@ -40,5 +40,13 @@ module Citizen
 
       assert_response :success
     end
+
+    test "the roles page lists the current account's roles" do
+      Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      get "/citizen/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_includes response.body, "Pretend Role"
+    end
   end
 end
