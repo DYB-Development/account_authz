@@ -48,5 +48,12 @@ module Citizen
 
       assert Reach.new(@lead, account_id: 1).includes_role?(co_lead)
     end
+
+    test "a manager does not reach a role at their own rank" do
+      co_lead = Role.create!(account_id: 1, name: "Co-lead", rank: 1, capabilities: [])
+      Role.create!(account_id: 1, name: "Owner", rank: 2, capabilities: [])
+
+      assert_not Reach.new(@lead, account_id: 1).includes_role?(co_lead)
+    end
   end
 end
