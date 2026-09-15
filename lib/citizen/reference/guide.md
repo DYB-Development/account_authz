@@ -110,6 +110,20 @@ no current account, gets 403, and another account's roles cannot be changed.
 Citizen.roles_capability = :manage_team   # default :manage_roles
 ```
 
+**Ranks (who may manage whom).** Each role has an integer `rank` (default 0),
+set on the role form. A manager gives or takes only roles ranked below their
+highest role in the account, and changes only members whose highest role ranks
+below it. A manager holding a role at the account's top rank reaches every
+member and role. The members page shows only the changes the viewer may make,
+and a refused change sent directly gets 403. `Citizen::Reach` answers the same
+questions for host code:
+
+```ruby
+reach = Citizen::Reach.new(current_member, account_id: account.id)
+reach.includes_member?(member)   # => true/false
+reach.includes_role?(role)       # => true/false
+```
+
 ### Install
 
 Citizen is a Rails engine; install it correctly with the engine flow — not a

@@ -60,5 +60,11 @@ module Citizen
 
       assert_equal [ mine ], Role.in_account(1).to_a
     end
+
+    test "a new role sits at the bottom rank" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      assert_equal 0, role.rank
+    end
   end
 end

@@ -130,5 +130,40 @@ module Citizen
 
       assert_select "a[href=?]", "/reports"
     end
+
+    test "the members page does not offer to give a role ranked at or above the viewer's own" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+      owner = Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: [])
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?] input[name=role_id][value=?]", "/citizen/members/#{person.id}/roles", owner.id.to_s, count: 0
+    end
+
+    test "the members page does not offer to take away a role ranked at or above the viewer's own" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+      owner = Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: [])
+      person.assign_role(owner)
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?]", "/citizen/members/#{person.id}/roles/#{owner.id}", count: 0
+    end
+
+    test "the members page offers no role changes for a member ranked at or above the viewer" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", rank: 1, capabilities: %w[manage_members]))
+      Role.create!(account_id: 1, name: "Worker", rank: 0, capabilities: [])
+      owner = ::Member.create!(account_id: 1, name: "Pretend Owner")
+      owner.assign_role(Role.create!(account_id: 1, name: "Owner", rank: 2, capabilities: []))
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action^=?]", "/citizen/members/#{owner.id}/roles", count: 0
+    end
   end
 end

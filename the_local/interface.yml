@@ -33,6 +33,9 @@ develop:
   - Citizen.members_source
   - Citizen.members_capability
   - Citizen.roles_capability
+  - Citizen::Reach
+  - reach.includes_member?
+  - reach.includes_role?
 
 sources:
   - lib/citizen.rb
@@ -44,6 +47,7 @@ sources:
   - app/controllers/citizen/member_roles_controller.rb
   - app/views/citizen/members/index.html.erb
   - app/controllers/citizen/roles_controller.rb
+  - app/models/citizen/reach.rb
   - app/views/citizen/roles/index.html.erb
   - app/views/citizen/roles/_form.html.erb
   - app/controllers/citizen/application_controller.rb

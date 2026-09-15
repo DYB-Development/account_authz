@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_15_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_000001) do
   create_table "citizen_assignments", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "member_id", null: false
@@ -27,6 +27,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_15_000001) do
     t.json "capabilities", default: [], null: false
     t.datetime "created_at", null: false
     t.string "name", null: false
+    t.integer "rank", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_citizen_roles_on_account_id"
   end
