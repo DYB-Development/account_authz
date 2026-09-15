@@ -226,5 +226,14 @@ module Citizen
 
       assert_equal "Senior", role.reload.name
     end
+
+    test "an editor is refused a template role with a capability they do not hold" do
+      Citizen.catalog { permission :export_data }
+      Citizen.templates { template :exporter, capabilities: %w[export_data] }
+
+      post "/citizen/roles", params: { template: "exporter", signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not Role.exists?(name: "Exporter")
+    end
   end
 end
