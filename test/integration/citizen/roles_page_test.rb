@@ -11,7 +11,7 @@ module Citizen
         permission :view_reports
       end
       @admin = ::Member.create!(account_id: 1, name: "Pretend Admin")
-      @admin.assign_role(Role.create!(account_id: 1, name: "Admin", capabilities: %w[manage_roles]))
+      @admin.assign_role(Role.create!(account_id: 1, name: "Admin", capabilities: %w[manage_roles view_reports]))
     end
 
     teardown { Citizen.reset! }
@@ -185,6 +185,14 @@ module Citizen
       patch "/citizen/roles/#{manager_role.id}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
+    end
+
+    test "an editor is refused a new role with a capability they do not hold" do
+      Citizen.catalog { permission :export_data }
+
+      post "/citizen/roles", params: { role: { name: "Pretend Role", capabilities: %w[export_data] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not Role.exists?(name: "Pretend Role")
     end
   end
 end

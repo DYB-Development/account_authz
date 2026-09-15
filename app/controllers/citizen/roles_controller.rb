@@ -14,6 +14,8 @@ module Citizen
       if params[:template].present?
         Role.from_template(account_id: Current.account_id, template: params[:template].to_sym)
       else
+        return refuse(:capabilities_out_of_reach, back_to: new_role_path) unless reach.includes_capabilities?(role_params[:capabilities])
+
         Role.create!(account_id: Current.account_id, **role_params)
       end
 
@@ -34,6 +36,10 @@ module Citizen
     end
 
     private
+
+    def reach
+      @reach ||= Reach.new(current_member, account_id: Current.account_id)
+    end
 
     def role_params
       permitted = params.require(:role).permit(:name, :rank, capabilities: []).to_h.symbolize_keys
