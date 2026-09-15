@@ -158,5 +158,13 @@ module Citizen
 
       assert_equal 2, role.reload.rank
     end
+
+    test "the edit role form shows the role's rank" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", rank: 3, capabilities: [])
+
+      get "/citizen/roles/#{role.id}/edit", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_select "input[name='role[rank]'][value='3']"
+    end
   end
 end
