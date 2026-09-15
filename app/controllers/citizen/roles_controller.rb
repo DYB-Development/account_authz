@@ -33,7 +33,7 @@ module Citizen
     private
 
     def role_params
-      permitted = params.require(:role).permit(:name, capabilities: []).to_h.symbolize_keys
+      permitted = params.require(:role).permit(:name, :rank, capabilities: []).to_h.symbolize_keys
       permitted[:capabilities] = permitted[:capabilities].compact_blank if permitted.key?(:capabilities)
       permitted
     end

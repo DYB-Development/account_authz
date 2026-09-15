@@ -150,5 +150,13 @@ module Citizen
 
       assert_not_includes response.body, "Templates"
     end
+
+    test "a member who can manage roles sets a role's rank" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Pretend Role", rank: "2" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal 2, role.reload.rank
+    end
   end
 end
