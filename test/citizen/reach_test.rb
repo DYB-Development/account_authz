@@ -16,5 +16,11 @@ module Citizen
 
       assert Reach.new(@lead, account_id: 1).includes_member?(@person)
     end
+
+    test "a manager reaches a member who holds no role in the account" do
+      Role.create!(account_id: 1, name: "Owner", rank: 2, capabilities: [])
+
+      assert Reach.new(@lead, account_id: 1).includes_member?(@person)
+    end
   end
 end

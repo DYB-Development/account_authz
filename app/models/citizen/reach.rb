@@ -14,7 +14,7 @@ module Citizen
     private
 
     def highest_rank(member)
-      member.citizen_roles.in_account(@account_id).maximum(:rank)
+      member.citizen_roles.in_account(@account_id).maximum(:rank) || -Float::INFINITY
     end
   end
 end
