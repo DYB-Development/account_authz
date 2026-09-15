@@ -27,5 +27,13 @@ module Citizen
 
       assert_empty @person.citizen_roles.in_account(1)
     end
+
+    test "a manager cannot remove a member ranked at or above them" do
+      @person.assign_role(Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: []))
+
+      delete "/citizen/members/#{@person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal 1, @person.reload.account_id
+    end
   end
 end
