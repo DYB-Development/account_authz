@@ -114,5 +114,13 @@ module Citizen
 
       assert_equal %w[manage_roles view_reports], css_select("form[action='/citizen/roles'] input[type=checkbox][name='role[capabilities][]']").map { |box| box["value"] }
     end
+
+    test "the edit role form ticks the capabilities the role holds" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: %w[view_reports])
+
+      get "/citizen/roles/#{role.id}/edit", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal %w[view_reports], css_select("form[action='/citizen/roles/#{role.id}'] input[type=checkbox][checked]").map { |box| box["value"] }
+    end
   end
 end

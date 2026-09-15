@@ -20,6 +20,10 @@ module Citizen
       redirect_to roles_path
     end
 
+    def edit
+      @role = Role.in_account(Current.account_id).find(params[:id])
+    end
+
     def update
       Role.in_account(Current.account_id).find(params[:id]).update!(**role_params)
 
