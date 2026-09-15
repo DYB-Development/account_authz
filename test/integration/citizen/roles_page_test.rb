@@ -211,5 +211,11 @@ module Citizen
 
       assert_equal 0, role.reload.rank
     end
+
+    test "an editor is refused a new role ranked above their own" do
+      post "/citizen/roles", params: { role: { name: "Pretend Role", rank: "5" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not Role.exists?(name: "Pretend Role")
+    end
   end
 end

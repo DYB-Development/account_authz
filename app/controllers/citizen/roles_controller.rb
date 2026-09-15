@@ -14,6 +14,7 @@ module Citizen
       if params[:template].present?
         Role.from_template(account_id: Current.account_id, template: params[:template].to_sym)
       else
+        return refuse(:rank_out_of_reach, back_to: new_role_path) if role_params.key?(:rank) && !reach.includes_rank?(role_params[:rank])
         return refuse(:capabilities_out_of_reach, back_to: new_role_path) unless reach.includes_capabilities?(role_params[:capabilities])
 
         Role.create!(account_id: Current.account_id, **role_params)
