@@ -1,6 +1,6 @@
 ---
 name: citizen-develop
-description: Use PROACTIVELY for declaring capabilities (permissions and metrics), defining role templates, seeding an account's default roles, creating roles, assigning or revoking a member's roles, checking whether a member can do something, filtering which metrics a member may see, and writing Pundit policies that gate actions on a capability — MUST BE USED instead of hand-rolling role checks, permission flags, or ad hoc authorization in controllers and views.
+description: Use PROACTIVELY for declaring capabilities (permissions and metrics), defining role templates, seeding an account's default roles, creating roles, assigning or revoking a member's roles, checking whether a member can do something, filtering which metrics a member may see, writing Pundit policies that gate actions on a capability, and choosing which members the members page lists and which capability opens it — MUST BE USED instead of hand-rolling role checks, permission flags, or ad hoc authorization in controllers and views.
 tools: Read, Write, Edit, Grep
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -9,7 +9,7 @@ You implement authorization in a host app that already has citizen installed, us
 
 ## What citizen is
 
-Citizen is capability-based authorization for multi-tenant Rails apps. The app declares a fixed list of capability keys in code, each account holds roles as records that bundle a subset of those keys, and a member's access is the union of the capabilities of the roles assigned to them. Fire this local when code needs to declare a capability, create or seed roles, assign roles to a member, answer "may this member do X", pick which metrics a member may see, or write a policy that authorizes an action.
+Citizen is capability-based authorization for multi-tenant Rails apps. The app declares a fixed list of capability keys in code, each account holds roles as records that bundle a subset of those keys, and a member's access is the union of the capabilities of the roles assigned to them. Fire this local when code needs to declare a capability, create or seed roles, assign roles to a member, answer "may this member do X", pick which metrics a member may see, write a policy that authorizes an action, or decide who the members page lists and who may open it.
 
 ## Interface
 
@@ -17,7 +17,7 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 - `Citizen.catalog.permissions` — the declared permission keys, in declaration order.
 - `Citizen.catalog.metrics` — the declared metric keys, in declaration order.
 - `Citizen.capabilities` — every declared key, permissions first and then metrics.
-- `Citizen.reset!` — clears both the catalog and the templates.
+- `Citizen.reset!` — clears the catalog, the templates, and any `members_capability` set, and leaves `members_source` as it was.
 - `Citizen.can?` — `Citizen.can?(grants, capability)` returns true when the `grants` array includes `capability`.
 - `Citizen.approved_metrics` — `Citizen.approved_metrics(grants)` returns the catalog's metrics that appear in `grants`, in catalog order.
 - `Citizen::Role.in_account` — `Citizen::Role.in_account(account_id)` is a scope of the roles belonging to one account.
@@ -34,6 +34,8 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 - `member.can?` — `member.can?(capability, account_id: nil)` returns true when that union includes `capability`.
 - `member.approved_metrics` — `member.approved_metrics(account_id: nil)` returns the catalog metrics the member holds.
 - `Citizen::ApplicationPolicy` — the base class for Pundit policies, taking `(member, record)`, exposing `member` and `record`, and providing `can?(capability)`.
+- `Citizen.members_source` — `Citizen.members_source = ->(account_id) { ... }` sets the callable that returns the members the members page lists for an account, and it has no default.
+- `Citizen.members_capability` — `Citizen.members_capability = :key` sets the capability a member needs in the current account to open the members page, and it defaults to `:manage_members`.
 
 ## How to use it
 
@@ -61,9 +63,20 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 
    The base class defines no `Scope`, so a policy used with `policy_scope` needs its own. The `member` a policy receives is the object Pundit passes as its user, and it must be an instance of the host's role-holding model. The base `can?(capability)` checks only the roles the member holds in the current request's account, and it returns false when no current account is set, so the request must set the current account before any policy runs. The controller `can?` helper follows the same rule.
 
-8. **Reset in tests.** Call `Citizen.reset!` in test setup when a test declares its own catalog or templates, then declare what the test needs. After `reset!` the catalog is empty, so creating any role with capabilities fails validation until the catalog is declared again.
+8. **Configure the members page, if the host serves it.** The page lists each member's name, email, and the names of the roles they hold in the current account. It creates, assigns, and revokes nothing. In the initializer, set both values:
 
-9. **Run the test suite** after each change.
+   ```ruby
+   Citizen.members_source = ->(account_id) { Membership.where(account_id: account_id) }
+   Citizen.members_capability = :manage_team
+   ```
+
+   Ask the developer which records the source returns, because that depends on how the host stores which members belong to an account. Each record the source returns must respond to `name` and `email` and be an instance of the host's role-holding model. The source is called with the current account's id on each request that passes the capability check. With no source set, that request raises an error.
+
+   Ask the developer which capability opens the page: the default `:manage_members`, or a key the app already uses for managing its team. Set it as a symbol, because a string never matches a member's capabilities. Declare that key in the catalog as a permission, because otherwise no role can grant it and every request to the page gets 403. A request with no signed-in member or no current account also gets 403.
+
+9. **Reset in tests.** Call `Citizen.reset!` in test setup when a test declares its own catalog or templates, then declare what the test needs. After `reset!` the catalog is empty, so creating any role with capabilities fails validation until the catalog is declared again. `reset!` returns `members_capability` to `:manage_members` but does not clear `members_source`, so a test that sets a source must set it back itself.
+
+10. **Run the test suite** after each change.
 
 ## Conventions
 
@@ -71,5 +84,6 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 - Roles are records, and are never hardcoded in application code; starter roles come from templates.
 - Every capability check goes through `member.can?`, `Citizen.can?`, or a policy that inherits `Citizen::ApplicationPolicy`, never through role names or flags compared in controllers or views.
 - Every capability check in a multi-tenant request passes the current account's id, unless the developer has decided otherwise.
-- Adding the gem, running its migrations, and preparing the host's models and controllers are out of scope for this local.
-- Citizen provides no role management screens, so the host builds those.
+- The members page capability is a catalog key like any other, and is never checked by comparing role names.
+- Adding the gem, running its migrations, preparing the host's models and controllers, and making the members page reachable are out of scope for this local.
+- Citizen's members page only lists members and their roles, so the host builds any screens that create, assign, or revoke roles.
