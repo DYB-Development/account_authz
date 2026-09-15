@@ -63,7 +63,7 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 
    The base class defines no `Scope`, so a policy used with `policy_scope` needs its own. The `member` a policy receives is the object Pundit passes as its user, and it must be an instance of the host's role-holding model. The base `can?(capability)` checks only the roles the member holds in the current request's account, and it returns false when no current account is set, so the request must set the current account before any policy runs. The controller `can?` helper follows the same rule.
 
-8. **Configure the members page, if the host serves it.** The page lists each member's name, email, and the names of the roles they hold in the current account. For each member it shows a button to give each of the current account's roles the member does not hold, and a button to take away each role the member holds in that account. Each button changes the member's roles and returns to the page. The page creates no roles, so an account with no roles shows no give buttons. In the initializer, set both values:
+8. **Configure the members page, if the host serves it.** The page lists each member's name, email, and the names of the roles they hold in the current account. For each member it shows a button to give each of the current account's roles the member does not hold, and a button to take away each role the member holds in that account. Each button changes the member's roles and returns to the page. The page creates no roles, so an account with no roles shows no give buttons. The page is drawn inside the layout the host's `ApplicationController` uses, so nothing in this step changes how it looks. In the initializer, set both values:
 
    ```ruby
    Citizen.members_source = ->(account_id) { Membership.where(account_id: account_id) }
@@ -85,5 +85,5 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 - Every capability check goes through `member.can?`, `Citizen.can?`, or a policy that inherits `Citizen::ApplicationPolicy`, never through role names or flags compared in controllers or views.
 - Every capability check in a multi-tenant request passes the current account's id, unless the developer has decided otherwise.
 - The members page capability is a catalog key like any other, and is never checked by comparing role names.
-- Adding the gem, running its migrations, preparing the host's models and controllers, and making the members page reachable are out of scope for this local.
+- Adding the gem, running its migrations, preparing the host's models and controllers, making the members page reachable, and loading keystone_ui's styles into the host's layout are out of scope for this local.
 - Citizen's members page gives and takes an account's existing roles, so the host builds any screens that create roles or change a role's capabilities.

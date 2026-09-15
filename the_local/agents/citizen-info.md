@@ -21,7 +21,8 @@ bundling of those actions into roles is decided by each account. It is a Rails
 engine that stores roles and role assignments in its own tables, and it enforces
 through Pundit. It ships one page, the members page, which lists an account's
 members with their name, email and roles, and lets a manager give a member a role
-or take one away. The host app signs people in, sets which account a request
+or take one away. The page is drawn with keystone_ui inside the host's own
+layout. The host app signs people in, sets which account a request
 belongs to, supplies the members the page lists, and builds any screen for
 creating or editing roles.
 
@@ -75,6 +76,10 @@ Decide which of the two you need, then go there.
   account with the roles they hold in that account only. Beside each member is a
   Give button for every role of the account they do not hold and a Take button
   for every role they do.
+- **Host layout** — the members page is built from keystone_ui components and
+  shown inside the layout the host's own controllers use, so the host loads
+  keystone_ui's styles. Links in that layout to the host's own pages work on the
+  members page without change.
 - **Giving and taking** — assigning a role to a member, or removing one, from the
   members page. Only members and roles of the current account can be given or
   taken, and either action returns to the members page.
