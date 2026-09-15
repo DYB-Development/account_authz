@@ -194,5 +194,15 @@ module Citizen
 
       assert_select "form[action=?]", "/citizen/members/#{owner.id}", count: 0
     end
+
+    test "the members page does not offer the only manager a way to take away their members role" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager_role = Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members])
+      manager.assign_role(manager_role)
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?]", "/citizen/members/#{manager.id}/roles/#{manager_role.id}", count: 0
+    end
   end
 end

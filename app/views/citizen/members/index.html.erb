@@ -20,7 +20,7 @@
           <% end %>
           <% if @reach.includes_member?(member) %>
             <%= ui_grid(cols: { default: 2, sm: 3 }, gap: :sm) do %>
-              <% (held & @roles).each do |role| %>
+              <% (held & @roles).reject { |role| @last_manager.lost_by_taking?(member, role) }.each do |role| %>
                 <%= ui_form(action: member_role_path(member, role), method: :delete) do %>
                   <%= ui_button(label: "Take #{role.name}", variant: :danger, size: :sm) %>
                 <% end %>

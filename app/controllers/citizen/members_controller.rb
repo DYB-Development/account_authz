@@ -5,6 +5,7 @@ module Citizen
     def index
       @members = Citizen.members_source.members(Current.account_id)
       @reach = reach
+      @last_manager = LastManager.new(account_id: Current.account_id)
       @roles = Role.in_account(Current.account_id).select { |role| reach.includes_role?(role) }
     end
 
