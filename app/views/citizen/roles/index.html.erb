@@ -1,3 +1,6 @@
 <% @roles.each do |role| %>
   <p><%= role.name %></p>
 <% end %>
+<% Citizen.templates.defaults.each do |template| %>
+  <%= button_to "Add #{template.role_name}", roles_path, params: { template: template.name } %>
+<% end %>

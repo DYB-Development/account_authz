@@ -122,5 +122,13 @@ module Citizen
 
       assert_equal %w[view_reports], css_select("form[action='/citizen/roles/#{role.id}'] input[type=checkbox][checked]").map { |box| box["value"] }
     end
+
+    test "the roles page offers to add each default template" do
+      Citizen.templates { template :reporter, capabilities: %w[view_reports], default: true }
+
+      get "/citizen/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_select "form[action='/citizen/roles'][method=post] input[name=template][value=reporter]"
+    end
   end
 end
