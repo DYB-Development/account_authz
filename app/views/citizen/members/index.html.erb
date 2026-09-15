@@ -1,5 +1,12 @@
 <%= ui_page(max_width: :lg) do %>
   <%= ui_section(title: "Members") do %>
+    <%= ui_panel do %>
+      <%= ui_form(action: invitations_path) do %>
+        <%= ui_form_field(attribute: "invitation[name]", label: "Name", required: true) %>
+        <%= ui_form_field(attribute: "invitation[email]", label: "Email", type: :email, required: true) %>
+        <%= ui_button(label: "Invite") %>
+      <% end %>
+    <% end %>
     <% @members.each do |member| %>
       <% held = member.citizen_roles.in_account(Citizen::Current.account_id).to_a %>
       <%= ui_panel do %>
