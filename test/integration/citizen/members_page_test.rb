@@ -121,5 +121,14 @@ module Citizen
 
       assert_select "meta[name=application-name][content=Dummy]"
     end
+
+    test "the app's layout reaches the app's own routes on the members page" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "a[href=?]", "/reports"
+    end
   end
 end
