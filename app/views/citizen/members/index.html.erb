@@ -8,6 +8,13 @@
           <%= ui_button(label: "Invite") %>
         <% end %>
       <% end %>
+      <% @invitations.each do |invitation| %>
+        <%= ui_panel do %>
+          <%= ui_section(title: invitation.name, subtitle: invitation.email, spacing: :sm) do %>
+            <%= ui_badge(label: "Invited", variant: :warning) %>
+          <% end %>
+        <% end %>
+      <% end %>
       <% @members.each do |member| %>
         <% held = member.citizen_roles.in_account(Citizen::Current.account_id).to_a %>
         <%= ui_panel do %>

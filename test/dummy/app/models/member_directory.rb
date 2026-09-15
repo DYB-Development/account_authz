@@ -9,6 +9,10 @@ class MemberDirectory
     Invitation.create!(account_id: account_id, name: name, email: email)
   end
 
+  def self.invitations(account_id)
+    Invitation.where(account_id: account_id)
+  end
+
   def self.removable?(member)
     !member.owner?
   end

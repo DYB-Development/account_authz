@@ -232,5 +232,15 @@ module Citizen
 
       assert_select "a[href='/citizen/roles']", count: 0
     end
+
+    test "the members page lists an invitation still waiting for an answer" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      ::Invitation.create!(account_id: 1, name: "Pretend Guest", email: "guest@example.com")
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_includes response.body, "guest@example.com"
+    end
   end
 end
