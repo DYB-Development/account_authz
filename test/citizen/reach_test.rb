@@ -63,5 +63,18 @@ module Citizen
 
       assert_not Reach.new(@lead, account_id: 1).includes_member?(@person)
     end
+
+    test "a manager cannot hand out a capability they do not hold" do
+      Citizen.reset!
+      Citizen.catalog do
+        permission :manage_roles
+        permission :view_reports
+      end
+      @lead.assign_role(Role.create!(account_id: 1, name: "Role admin", rank: 1, capabilities: %w[manage_roles]))
+
+      assert_not Reach.new(@lead, account_id: 1).includes_capabilities?(%w[manage_roles view_reports])
+    ensure
+      Citizen.reset!
+    end
   end
 end

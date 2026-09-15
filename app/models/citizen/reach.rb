@@ -15,6 +15,10 @@ module Citizen
       top_rank? || role.rank < own_rank
     end
 
+    def includes_capabilities?(capabilities)
+      false
+    end
+
     private
 
     def top_rank?
