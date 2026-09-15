@@ -76,5 +76,13 @@ module Citizen
 
       assert Role.in_account(1).exists?(name: "Reporter")
     end
+
+    test "a member who cannot manage roles cannot create a role" do
+      member = ::Member.create!(account_id: 1, name: "Pretend Person")
+
+      post "/citizen/roles", params: { role: { name: "Pretend Role" }, signed_in_member_id: member.id, account_id: 1 }
+
+      assert_not Role.exists?(name: "Pretend Role")
+    end
   end
 end
