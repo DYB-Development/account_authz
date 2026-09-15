@@ -1,6 +1,6 @@
 ---
 name: citizen-info
-description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, role ranks that limit who may manage whom, a rule that every account keeps a member manager, pages for managing roles and for inviting, removing, and giving and taking roles from members, and Pundit enforcement.
+description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, role ranks that limit who may manage whom, a rule that every account keeps a member manager, pages for managing roles and for inviting, removing, and giving and taking roles from members, messages that tell a manager why a change was refused, and Pundit enforcement.
 tools: Read
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -26,9 +26,10 @@ account's roles, including each role's rank. The members page lets a manager
 invite a person, remove a member, and give a member a role or take one away,
 with removing and role changes limited to the members and roles ranked below the
 manager. Both sets of pages refuse any change that would leave the account with
-no member able to manage members. The host app signs people in, sets which
-account a request belongs to, and supplies the members the members page lists,
-sends the invitations, and carries out the removals.
+no member able to manage members, and tell the manager why a change was refused.
+The host app signs people in, sets which account a request belongs to, and
+supplies the members the members page lists, sends the invitations, and carries
+out the removals.
 
 ## Interface
 
@@ -42,8 +43,8 @@ two locals:
   declaring the catalog, defining and seeding roles, assigning roles to members,
   checking capabilities, asking whether a manager's rank reaches a member or a
   role, asking whether a change would remove the account's last member manager,
-  writing policies, and configuring the members page, including how it invites
-  and removes, and the role pages.
+  writing policies, configuring the members page, including how it invites
+  and removes, and the role pages, and rewording the refusal messages.
 
 ## How to use it
 
@@ -54,9 +55,9 @@ Decide which of the two you need, then go there.
   been installed after an update: use **citizen-install**.
 - Citizen is connected and you are adding a capability, a role, a template, a
   check on an action, a check on who may manage whom in the host's own screens,
-  a check that the host's own screens keep a member manager, or setting up the
-  members page, its invitations and removals, or the role pages: use
-  **citizen-develop**.
+  a check that the host's own screens keep a member manager, setting up the
+  members page, its invitations and removals, or the role pages, or changing
+  the wording of a refusal message: use **citizen-develop**.
 
 ## Conventions
 
@@ -113,7 +114,8 @@ Decide which of the two you need, then go there.
   pages, so a person who may open them can change any role's rank or
   capabilities. The one change they refuse is a capability edit that breaks the
   last member manager rule. The form still shows that checkbox, and saving it
-  unticked gets a forbidden response.
+  unticked returns to the edit form with a refusal message and leaves the role
+  unchanged.
 - **Adding from a template** — the role list shows an Add button for each default
   template, and hides that part of the page when the app has no default
   templates. Unlike seeding, the button does not check whether the account
@@ -155,12 +157,16 @@ Decide which of the two you need, then go there.
   the app names another.
 - **Roles capability** — the capability a person needs to open the role pages and
   to create or change roles there, `manage_roles` unless the app names another.
-- **Refused** — a person without the page's capability, or a request with no
-  current account, gets a forbidden response from any engine page. A give, take
-  or removal sent for a member or role outside the viewer's reach also gets a
-  forbidden response. So does a removal of a member the host says may not be
-  removed, and any take, removal or capability edit that breaks the last member
-  manager rule. Another account's roles and members cannot be read or changed
-  from these pages.
+- **Forbidden** — a person without the page's capability, or a request with no
+  current account, gets a forbidden response from any engine page. Another
+  account's roles and members cannot be read or changed from these pages.
+- **Refusal message** — what a manager sees when they may use the page but not
+  make a particular change. Citizen changes nothing and sends them back with a
+  flash alert saying why: to the members page for a give, take or removal, and
+  to the role's edit form for a capability edit. Four reasons have a message: a
+  role outside the manager's reach, a member outside the manager's reach, a
+  member the host says may not be removed, and a change that breaks the last
+  member manager rule. The message shows only when the host's layout renders
+  flash alerts, and the app can reword each one in its locale files.
 - The rule the gem follows: capabilities are code, roles are data, and Pundit
   enforces.
