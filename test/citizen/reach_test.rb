@@ -86,5 +86,9 @@ module Citizen
     ensure
       Citizen.reset!
     end
+
+    test "a manager cannot set a rank above their own highest role" do
+      assert_not Reach.new(@lead, account_id: 1).includes_rank?(2)
+    end
   end
 end
