@@ -90,5 +90,9 @@ module Citizen
     test "a manager cannot set a rank above their own highest role" do
       assert_not Reach.new(@lead, account_id: 1).includes_rank?(2)
     end
+
+    test "a manager sets a rank up to their own highest role" do
+      assert Reach.new(@lead, account_id: 1).includes_rank?(1)
+    end
   end
 end
