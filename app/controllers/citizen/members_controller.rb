@@ -5,12 +5,14 @@ module Citizen
     def index
       @members = Citizen.members_source.members(Current.account_id)
       @reach = reach
+      @last_manager = LastManager.new(account_id: Current.account_id)
       @roles = Role.in_account(Current.account_id).select { |role| reach.includes_role?(role) }
     end
 
     def destroy
       member = Citizen.members_source.members(Current.account_id).find(params[:id])
       return head :forbidden unless reach.includes_member?(member) && Citizen.members_source.removable?(member)
+      return head :forbidden if LastManager.new(account_id: Current.account_id).lost_by_removing?(member)
 
       ApplicationRecord.transaction do
         member.citizen_roles.in_account(Current.account_id).each { |role| member.revoke_role(role) }
