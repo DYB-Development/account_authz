@@ -26,5 +26,13 @@ module Citizen
 
       assert_not ::Invitation.exists?(email: "guest@example.com")
     end
+
+    test "a manager cancels an invitation still waiting for an answer" do
+      invitation = ::Invitation.create!(account_id: 1, name: "Pretend Guest", email: "guest@example.com")
+
+      delete "/citizen/invitations/#{invitation.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_not ::Invitation.exists?(invitation.id)
+    end
   end
 end

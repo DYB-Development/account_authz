@@ -13,6 +13,10 @@ class MemberDirectory
     Invitation.where(account_id: account_id)
   end
 
+  def self.cancel_invitation(invitation)
+    invitation.destroy!
+  end
+
   def self.removable?(member)
     !member.owner?
   end

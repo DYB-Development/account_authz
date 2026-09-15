@@ -8,6 +8,12 @@ module Citizen
       redirect_to members_path
     end
 
+    def destroy
+      Citizen.members_source.cancel_invitation(Citizen.members_source.invitations(Current.account_id).find(params[:id]))
+
+      redirect_to members_path
+    end
+
     private
 
     def invitation_params
