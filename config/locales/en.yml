@@ -6,3 +6,4 @@ en:
       last_manager: "Someone else needs to be able to manage members first."
       not_removable: "This member can't be removed from the account."
       capabilities_out_of_reach: "You can only give a role capabilities you have yourself."
+      rank_out_of_reach: "You can only set a rank up to your own."

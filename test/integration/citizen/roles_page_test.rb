@@ -11,7 +11,7 @@ module Citizen
         permission :view_reports
       end
       @admin = ::Member.create!(account_id: 1, name: "Pretend Admin")
-      @admin.assign_role(Role.create!(account_id: 1, name: "Admin", capabilities: %w[manage_roles view_reports]))
+      @admin.assign_role(Role.create!(account_id: 1, name: "Admin", rank: 3, capabilities: %w[manage_roles view_reports]))
     end
 
     teardown { Citizen.reset! }
@@ -202,6 +202,14 @@ module Citizen
       patch "/citizen/roles/#{role.id}", params: { role: { name: "Pretend Role", capabilities: %w[export_data] }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_empty role.reload.capabilities
+    end
+
+    test "an editor is refused setting a role's rank above their own" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Pretend Role", rank: "5" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal 0, role.reload.rank
     end
   end
 end
