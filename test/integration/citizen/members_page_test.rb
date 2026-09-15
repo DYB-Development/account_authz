@@ -28,5 +28,14 @@ module Citizen
 
       assert_response :forbidden
     end
+
+    test "the members page is refused when no current account is set" do
+      manager = ::Member.create!
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+
+      get "/citizen/members", params: { member_id: manager.id }
+
+      assert_response :forbidden
+    end
   end
 end
