@@ -92,5 +92,13 @@ module Citizen
 
       assert_includes @manager.citizen_roles, manager_role
     end
+
+    test "a manager refused a role ranked at or above their own is told why" do
+      owner = Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: [])
+
+      post "/citizen/members/#{@person.id}/roles", params: { role_id: owner.id, signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "You can only give or take roles ranked below your own.", flash[:alert]
+    end
   end
 end

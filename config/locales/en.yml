@@ -1,0 +1,4 @@
+en:
+  citizen:
+    refusals:
+      role_out_of_reach: "You can only give or take roles ranked below your own."
