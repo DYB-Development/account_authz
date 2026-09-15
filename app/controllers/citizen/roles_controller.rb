@@ -26,7 +26,7 @@ module Citizen
 
     def update
       role = Role.in_account(Current.account_id).find(params[:id])
-      return head :forbidden if role_params.key?(:capabilities) && LastManager.new(account_id: Current.account_id).lost_by_changing?(role, role_params[:capabilities])
+      return refuse(:last_manager, back_to: edit_role_path(role)) if role_params.key?(:capabilities) && LastManager.new(account_id: Current.account_id).lost_by_changing?(role, role_params[:capabilities])
 
       role.update!(**role_params)
 

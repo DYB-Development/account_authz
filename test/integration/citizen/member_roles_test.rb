@@ -92,5 +92,30 @@ module Citizen
 
       assert_includes @manager.citizen_roles, manager_role
     end
+
+    test "a manager refused a role ranked at or above their own is told why" do
+      owner = Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: [])
+
+      post "/citizen/members/#{@person.id}/roles", params: { role_id: owner.id, signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "You can only give or take roles ranked below your own.", flash[:alert]
+    end
+
+    test "a manager refused changes to a member ranked at or above them is told why" do
+      @manager.assign_role(Role.create!(account_id: 1, name: "Lead", rank: 1, capabilities: []))
+      @person.assign_role(Role.create!(account_id: 1, name: "Owner", rank: 2, capabilities: []))
+
+      post "/citizen/members/#{@person.id}/roles", params: { role_id: @role.id, signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "You can only change members ranked below you.", flash[:alert]
+    end
+
+    test "the only manager refused taking away their members role is told why" do
+      manager_role = @manager.citizen_roles.first
+
+      delete "/citizen/members/#{@manager.id}/roles/#{manager_role.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
+    end
   end
 end

@@ -2,7 +2,8 @@ module Citizen
   class MemberRolesController < ApplicationController
     requires_capability { Citizen.members_capability }
 
-    before_action { head :forbidden unless reach.includes_member?(member) && reach.includes_role?(role) }
+    before_action { refuse(:member_out_of_reach, back_to: members_path) unless reach.includes_member?(member) }
+    before_action { refuse(:role_out_of_reach, back_to: members_path) unless reach.includes_role?(role) }
 
     def create
       member.assign_role(role)
@@ -11,7 +12,7 @@ module Citizen
     end
 
     def destroy
-      return head :forbidden if LastManager.new(account_id: Current.account_id).lost_by_taking?(member, role)
+      return refuse(:last_manager, back_to: members_path) if LastManager.new(account_id: Current.account_id).lost_by_taking?(member, role)
 
       member.revoke_role(role)
 
