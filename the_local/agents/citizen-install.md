@@ -16,7 +16,7 @@ A Rails engine for capability-based authorization in multi-tenant apps, hooked i
 - `Citizen::Member` — a model concern included in the host model that holds roles, giving it role assignments.
 - `Citizen::Authorization` — a controller concern that includes `Pundit::Authorization` and adds a `can?(capability)` helper to controllers and views.
 - `Citizen::Current.account_id` — the per-request account that the `can?` helper scopes its answer to.
-- `mount Citizen::Engine` — a line in the host's `config/routes.rb` that serves two sets of pages for the current account. The members page lists each member with their name, email and roles, and gives or takes away roles ranked below the viewer's own. The role pages list the account's roles, create a role, add a role from a default template, and change a role's name, rank or capabilities. All of them are built from keystone_ui components and shown inside the host's own layout.
+- `mount Citizen::Engine` — a line in the host's `config/routes.rb` that serves two sets of pages for the current account. The members page lists each member with their name, email and roles, gives or takes away roles ranked below the viewer's own, invites a person by name and email, and removes a member from the account. The role pages list the account's roles, create a role, add a role from a default template, and change a role's name, rank or capabilities. All of them are built from keystone_ui components and shown inside the host's own layout.
 
 ## How to use it
 1. Confirm the host runs Ruby 3.2 or later and Rails 7.1 or later.
@@ -43,19 +43,26 @@ A Rails engine for capability-based authorization in multi-tenant apps, hooked i
    - Neither page links to the other. If the developer wants links to them in the host's navigation, ask where to put them.
    - A request with no current account gets a 403 response on every page and every form.
 12. Check the members page against these facts, and tell the developer about any that the host does not meet.
-   - A member who does not hold the members capability in the current account gets a 403 response, whether they load the page or give or take a role. The capability is `manage_members` unless the develop local changes it.
+   - A member who does not hold the members capability in the current account gets a 403 response, whether they load the page, give or take a role, invite a person, or remove a member. The capability is `manage_members` unless the develop local changes it.
    - Each listed member shows a badge for every role they hold in the current account.
    - The viewer's rank is the highest rank among the roles the viewer holds in the current account.
    - A listed member is within the viewer's reach when that member's highest rank in the current account is below the viewer's rank. A member who holds no role in the current account is within reach of every viewer who holds one.
    - A role is within the viewer's reach when its rank is below the viewer's rank.
-   - A viewer whose rank is equal to or above the highest rank of any role in the current account reaches every member and every role.
+   - A viewer whose rank is equal to or above the highest rank of any role in the current account reaches every member and every role, including their own entry on the page.
    - A member within the viewer's reach has a `Take <role>` button for each role they hold that is within reach, and a `Give <role>` button for each role within reach they do not hold. Each button submits a form and then returns to the members page.
-   - A member outside the viewer's reach is listed with no buttons.
    - Giving or taking a role for a member or a role outside the viewer's reach gets a 403 response.
+   - The top of the page has an invite form with a required `Name` field, a required `Email` field and an `Invite` button. Submitting it passes the current account, the name, the email and the inviting member to the host's invite, then returns to the members page.
+   - The invite form does not use the viewer's rank, and the engine does not validate the name or email, so the host's invite decides what to do with a value it rejects.
+   - The engine sends no email and stores no invitation. The host's invite does both, and accepting an invitation is the host's own flow.
+   - A member within the viewer's reach has a `Remove` button unless the host says that member cannot be removed, such as the account owner. Removing takes away every role the member holds in the current account, then calls the host's remove, and returns to the members page.
+   - The roles are taken away and the host's remove runs in one database transaction, so when the host's member records share a database with citizen's tables, a remove that raises leaves the member's roles in place.
+   - Removing a member outside the viewer's reach, or one the host says cannot be removed, gets a 403 response.
+   - A viewer at the top rank sees a `Remove` button on their own entry unless the host says they cannot be removed.
+   - A member outside the viewer's reach is listed with no buttons.
    - Every role starts at rank 0, so until ranks are set, every viewer who holds a role reaches every member and every role. Tell the developer this, and that a role's rank is set on the role form.
-   - Giving or taking a role finds the member only among the current account's members and the role only among the current account's roles, so a member or role from another account raises a not-found error, which Rails answers with a 404 response outside development.
+   - Giving or taking a role, and removing a member, find the member only among the current account's members and the role only among the current account's roles, so a member or role from another account raises a not-found error, which Rails answers with a 404 response outside development.
    - Every record the page lists must respond to `name` and `email` and include `Citizen::Member`. If the model from step 6 lacks `name` or `email`, tell the developer before continuing.
-   - The page does not know which records to list until the develop local configures that. Until then, a request from a member who holds the members capability raises an error on the page and on both buttons.
+   - The page does not know which records to list, how to invite a person, which members cannot be removed, or how to remove one until the develop local configures that. Until then, a request from a member who holds the members capability raises an error on the page, on every button and on the invite form.
 13. Check the role pages against these facts, and tell the developer about any that the host does not meet.
    - The roles page lists each role in the current account by name with its number of capabilities, and each name links to that role's edit form. A `New role` link opens the form for a new role.
    - The new and edit forms take a name, a rank as a number field with a minimum of 0, and a checkbox for each capability in the catalog, and saving returns to the roles page. The rank field on a new role starts at 0. Until the develop local declares the catalog, the forms show no checkboxes.
@@ -69,9 +76,9 @@ A Rails engine for capability-based authorization in multi-tenant apps, hooked i
 ## Conventions
 - After step 5, confirm the schema file contains both `citizen_roles` and `citizen_assignments`, and that `citizen_roles` has a `rank` column.
 - After step 10, confirm the host boots with `bin/rails runner 'puts Citizen::Current.account_id.inspect'`, which prints `nil` outside a request.
-- After step 11, confirm `bin/rails routes` lists the mount and, under the routes for `Citizen::Engine`, a `GET` route for `members`, a `POST` route for `members/:member_id/roles`, a `DELETE` route for `members/:member_id/roles/:id`, `GET` routes for `roles`, `roles/new` and `roles/:id/edit`, a `POST` route for `roles`, and `PATCH` and `PUT` routes for `roles/:id`.
-- After step 12, once the develop local has configured which members the page lists, load the members page as a member who holds the members capability and confirm it shows inside the host's layout with keystone_ui's styles applied.
+- After step 11, confirm `bin/rails routes` lists the mount and, under the routes for `Citizen::Engine`, a `GET` route for `members`, a `DELETE` route for `members/:id`, a `POST` route for `members/:member_id/roles`, a `DELETE` route for `members/:member_id/roles/:id`, a `POST` route for `invitations`, `GET` routes for `roles`, `roles/new` and `roles/:id/edit`, a `POST` route for `roles`, and `PATCH` and `PUT` routes for `roles/:id`.
+- After step 12, once the develop local has configured the members page, load it as a member who holds the members capability and confirm it shows the invite form inside the host's layout with keystone_ui's styles applied.
 - After step 13, load the roles page as a member who holds the roles capability and confirm it shows inside the host's layout with keystone_ui's styles applied.
 - After updating the citizen gem, run `bin/rails citizen:install:migrations` again, then `bin/rails db:migrate`. The task copies only migrations the host does not already have. A host that installed citizen before ranks existed gets the rank migration this way, and every existing role gets rank 0.
-- Declaring capabilities, declaring templates, seeding roles for a new account, giving the first member the members or roles capability, writing policies, checking reach in host code, and configuring which members the members page lists and which capabilities open the pages are out of scope for this local. Hand that work to the citizen-develop local.
-- The members page and the role pages are the only screens citizen adds. Deleting a role is not offered on them, and a screen for it belongs to the host.
+- Declaring capabilities, declaring templates, seeding roles for a new account, giving the first member the members or roles capability, writing policies, checking reach in host code, configuring which members the members page lists, how it invites a person, which members cannot be removed and how it removes one, and configuring which capabilities open the pages are out of scope for this local. Hand that work to the citizen-develop local.
+- The members page and the role pages are the only screens citizen adds. Deleting a role is not offered on them, and a screen for it belongs to the host. Sending an invitation and accepting one also belong to the host.
