@@ -50,5 +50,13 @@ module Citizen
 
       assert_empty @person.citizen_roles
     end
+
+    test "a member who cannot manage members cannot take a role away" do
+      @person.assign_role(@role)
+
+      delete "/citizen/members/#{@person.id}/roles/#{@role.id}", params: { signed_in_member_id: @person.id, account_id: 1 }
+
+      assert_includes @person.citizen_roles, @role
+    end
   end
 end
