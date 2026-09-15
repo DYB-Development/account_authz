@@ -2,17 +2,16 @@ module Citizen
   class MemberRolesController < ApplicationController
     requires_capability { Citizen.members_capability }
 
-    def create
-      role = role(params[:role_id])
-      return head :forbidden unless reach.includes_role?(role)
+    before_action { head :forbidden unless reach.includes_role?(role) }
 
+    def create
       member.assign_role(role)
 
       redirect_to members_path
     end
 
     def destroy
-      member.revoke_role(role(params[:id]))
+      member.revoke_role(role)
 
       redirect_to members_path
     end
@@ -27,8 +26,8 @@ module Citizen
       Citizen.members_source.call(Current.account_id).find(params[:member_id])
     end
 
-    def role(id)
-      Role.in_account(Current.account_id).find(id)
+    def role
+      @role ||= Role.in_account(Current.account_id).find(params[:role_id] || params[:id])
     end
   end
 end

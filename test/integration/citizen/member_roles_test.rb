@@ -66,5 +66,14 @@ module Citizen
 
       assert_empty @person.citizen_roles
     end
+
+    test "a manager cannot take away a role ranked at or above their own" do
+      owner = Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: [])
+      @person.assign_role(owner)
+
+      delete "/citizen/members/#{@person.id}/roles/#{owner.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_includes @person.citizen_roles, owner
+    end
   end
 end
