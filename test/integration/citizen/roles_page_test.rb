@@ -144,5 +144,11 @@ module Citizen
 
       assert_select "a[href=?]", "/citizen/roles/new"
     end
+
+    test "the roles page leaves out the templates section when the app has no default templates" do
+      get "/citizen/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not_includes response.body, "Templates"
+    end
   end
 end

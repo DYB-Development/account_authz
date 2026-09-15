@@ -5,12 +5,14 @@
       <% table.link(:name) { |row| edit_role_path(row[:role]) } %>
     <% end %>
   <% end %>
-  <%= ui_section(title: "Templates") do %>
-    <%= ui_grid(cols: { default: 1, sm: 2 }, gap: :sm) do %>
-      <% Citizen.templates.defaults.each do |template| %>
-        <%= ui_form(action: roles_path) do %>
-          <%= hidden_field_tag :template, template.name, id: nil %>
-          <%= ui_button(label: "Add #{template.role_name}", variant: :secondary, size: :sm) %>
+  <% if Citizen.templates.defaults.any? %>
+    <%= ui_section(title: "Templates") do %>
+      <%= ui_grid(cols: { default: 1, sm: 2 }, gap: :sm) do %>
+        <% Citizen.templates.defaults.each do |template| %>
+          <%= ui_form(action: roles_path) do %>
+            <%= hidden_field_tag :template, template.name, id: nil %>
+            <%= ui_button(label: "Add #{template.role_name}", variant: :secondary, size: :sm) %>
+          <% end %>
         <% end %>
       <% end %>
     <% end %>
