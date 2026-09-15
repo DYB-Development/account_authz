@@ -100,5 +100,13 @@ module Citizen
 
       assert_equal "Other Account Role", role.reload.name
     end
+
+    test "unticking every capability on a role leaves it with none" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: %w[view_reports])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Pretend Role", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_empty role.reload.capabilities
+    end
   end
 end
