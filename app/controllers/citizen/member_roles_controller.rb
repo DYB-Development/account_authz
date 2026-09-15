@@ -2,7 +2,7 @@ module Citizen
   class MemberRolesController < ApplicationController
     requires_capability { Citizen.members_capability }
 
-    before_action { head :forbidden unless reach.includes_member?(member) }
+    before_action { refuse(:member_out_of_reach) unless reach.includes_member?(member) }
     before_action { refuse(:role_out_of_reach) unless reach.includes_role?(role) }
 
     def create
