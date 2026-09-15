@@ -153,5 +153,17 @@ module Citizen
 
       assert_select "form[action=?]", "/citizen/members/#{person.id}/roles/#{owner.id}", count: 0
     end
+
+    test "the members page offers no role changes for a member ranked at or above the viewer" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", rank: 1, capabilities: %w[manage_members]))
+      Role.create!(account_id: 1, name: "Worker", rank: 0, capabilities: [])
+      owner = ::Member.create!(account_id: 1, name: "Pretend Owner")
+      owner.assign_role(Role.create!(account_id: 1, name: "Owner", rank: 2, capabilities: []))
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action^=?]", "/citizen/members/#{owner.id}/roles", count: 0
+    end
   end
 end

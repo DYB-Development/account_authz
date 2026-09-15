@@ -11,16 +11,18 @@
               <% end %>
             </div>
           <% end %>
-          <%= ui_grid(cols: { default: 2, sm: 3 }, gap: :sm) do %>
-            <% (held & @roles).each do |role| %>
-              <%= ui_form(action: member_role_path(member, role), method: :delete) do %>
-                <%= ui_button(label: "Take #{role.name}", variant: :danger, size: :sm) %>
+          <% if @reach.includes_member?(member) %>
+            <%= ui_grid(cols: { default: 2, sm: 3 }, gap: :sm) do %>
+              <% (held & @roles).each do |role| %>
+                <%= ui_form(action: member_role_path(member, role), method: :delete) do %>
+                  <%= ui_button(label: "Take #{role.name}", variant: :danger, size: :sm) %>
+                <% end %>
               <% end %>
-            <% end %>
-            <% (@roles - held).each do |role| %>
-              <%= ui_form(action: member_roles_path(member)) do %>
-                <%= hidden_field_tag :role_id, role.id, id: nil %>
-                <%= ui_button(label: "Give #{role.name}", variant: :secondary, size: :sm) %>
+              <% (@roles - held).each do |role| %>
+                <%= ui_form(action: member_roles_path(member)) do %>
+                  <%= hidden_field_tag :role_id, role.id, id: nil %>
+                  <%= ui_button(label: "Give #{role.name}", variant: :secondary, size: :sm) %>
+                <% end %>
               <% end %>
             <% end %>
           <% end %>
