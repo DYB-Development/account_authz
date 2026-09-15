@@ -16,7 +16,7 @@ module Citizen
     test "a manager invites a person to the account by name and email" do
       post "/citizen/invitations", params: { invitation: { name: "Pretend Person", email: "pretend@example.com" }, signed_in_member_id: @manager.id, account_id: 1 }
 
-      assert ::Member.exists?(account_id: 1, email: "pretend@example.com")
+      assert ::Invitation.exists?(account_id: 1, email: "pretend@example.com")
     end
 
     test "a member who cannot manage members cannot invite anyone" do
@@ -24,7 +24,7 @@ module Citizen
 
       post "/citizen/invitations", params: { invitation: { name: "Pretend Guest", email: "guest@example.com" }, signed_in_member_id: person.id, account_id: 1 }
 
-      assert_not ::Member.exists?(email: "guest@example.com")
+      assert_not ::Invitation.exists?(email: "guest@example.com")
     end
   end
 end
