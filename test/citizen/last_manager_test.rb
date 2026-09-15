@@ -17,5 +17,11 @@ module Citizen
     test "taking the members role from the only member who holds it loses the last manager" do
       assert LastManager.new(account_id: 1).lost_by_taking?(@manager, @manager_role)
     end
+
+    test "taking the members role keeps a manager when another member also holds it" do
+      ::Member.create!(account_id: 1, name: "Pretend Co-manager").assign_role(@manager_role)
+
+      assert_not LastManager.new(account_id: 1).lost_by_taking?(@manager, @manager_role)
+    end
   end
 end
