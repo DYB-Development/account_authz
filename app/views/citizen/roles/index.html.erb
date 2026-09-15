@@ -1,7 +1,18 @@
-<%= link_to "New role", new_role_path %>
-<% @roles.each do |role| %>
-  <p><%= link_to role.name, edit_role_path(role) %></p>
-<% end %>
-<% Citizen.templates.defaults.each do |template| %>
-  <%= button_to "Add #{template.role_name}", roles_path, params: { template: template.name } %>
+<%= ui_page(max_width: :lg) do %>
+  <%= ui_section(title: "Roles", action: { label: "New role", href: new_role_path }) do %>
+    <% rows = @roles.map { |role| { role: role, name: role.name, capabilities: Array(role.capabilities).size } } %>
+    <%= ui_data_table(items: rows, columns: [{ name: "Name" }, { capabilities: "Capabilities" }], empty_message: "No roles yet") do |table| %>
+      <% table.link(:name) { |row| edit_role_path(row[:role]) } %>
+    <% end %>
+  <% end %>
+  <%= ui_section(title: "Templates") do %>
+    <%= ui_grid(cols: { default: 1, sm: 2 }, gap: :sm) do %>
+      <% Citizen.templates.defaults.each do |template| %>
+        <%= ui_form(action: roles_path) do %>
+          <%= hidden_field_tag :template, template.name, id: nil %>
+          <%= ui_button(label: "Add #{template.role_name}", variant: :secondary, size: :sm) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
 <% end %>

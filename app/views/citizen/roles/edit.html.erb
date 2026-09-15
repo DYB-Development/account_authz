@@ -1,1 +1,4 @@
-<%= render "form", role: @role, url: role_path(@role) %>
+<%= ui_page(max_width: :md) do %>
+  <%= ui_form_page(title: "Edit role", back_url: roles_path) %>
+  <%= render "form", role: @role, url: role_path(@role), form_method: :patch %>
+<% end %>

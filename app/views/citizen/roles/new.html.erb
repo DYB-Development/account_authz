@@ -1,1 +1,4 @@
-<%= render "form", role: @role, url: roles_path %>
+<%= ui_page(max_width: :md) do %>
+  <%= ui_form_page(title: "New role", back_url: roles_path) %>
+  <%= render "form", role: @role, url: roles_path, form_method: :post %>
+<% end %>
