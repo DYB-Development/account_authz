@@ -84,5 +84,13 @@ module Citizen
 
       assert_not Role.exists?(name: "Pretend Role")
     end
+
+    test "a member who can manage roles renames a role" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Renamed Role" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal "Renamed Role", role.reload.name
+    end
   end
 end

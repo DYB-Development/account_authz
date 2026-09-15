@@ -16,6 +16,12 @@ module Citizen
       redirect_to roles_path
     end
 
+    def update
+      Role.in_account(Current.account_id).find(params[:id]).update!(**role_params)
+
+      redirect_to roles_path
+    end
+
     private
 
     def role_params
