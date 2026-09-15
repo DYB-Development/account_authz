@@ -13,6 +13,10 @@ class MemberDirectory
     Invitation.where(account_id: account_id)
   end
 
+  def self.resend_invitation(invitation)
+    invitation.update!(sent_count: invitation.sent_count + 1)
+  end
+
   def self.cancel_invitation(invitation)
     invitation.destroy!
   end

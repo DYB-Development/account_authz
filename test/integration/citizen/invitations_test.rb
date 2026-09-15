@@ -34,5 +34,13 @@ module Citizen
 
       assert_not ::Invitation.exists?(invitation.id)
     end
+
+    test "a manager sends an invitation again" do
+      invitation = ::Invitation.create!(account_id: 1, name: "Pretend Guest", email: "guest@example.com")
+
+      post "/citizen/invitations/#{invitation.id}/resend", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal 2, invitation.reload.sent_count
+    end
   end
 end
