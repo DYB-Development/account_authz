@@ -1,6 +1,6 @@
 ---
 name: citizen-info
-description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, role ranks that limit who may manage whom, a rule that every account keeps a member manager, pages for managing roles and for inviting, removing, and giving and taking roles from members, messages that tell a manager why a change was refused, and Pundit enforcement.
+description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, role ranks that limit who may manage whom, limits on which roles an editor may create or change, a rule that every account keeps a member manager, pages for managing roles and for inviting, removing, and giving and taking roles from members, messages that tell a manager why a change was refused, and Pundit enforcement.
 tools: Read
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -13,23 +13,25 @@ Citizen is authorization for a Rails app where many accounts share one
 installation and each account decides who may do what. The app's code declares
 the fixed list of things the software can gate. Each account then builds its own
 roles out of that list, ranks them, and assigns them to its people. Citizen
-answers four questions about a person in an account: may they do this, which
-metrics may they see, which members and roles may they manage, and would a
-change leave the account with nobody able to manage its members.
+answers five questions about a person in an account: may they do this, which
+metrics may they see, which members and roles may they manage, which
+capabilities and ranks may they put on a role, and would a change leave the
+account with nobody able to manage its members.
 
 Reach for it when the set of gated actions is decided by the developers but the
 bundling of those actions into roles is decided by each account. It is a Rails
 engine that stores roles and role assignments in its own tables, and it enforces
 through Pundit. It ships two sets of pages, drawn with keystone_ui inside the
 host's own layout. The role pages let a manager list, create and edit the
-account's roles, including each role's rank. The members page lets a manager
-invite a person, remove a member, and give a member a role or take one away,
-with removing and role changes limited to the members and roles ranked below the
-manager. Both sets of pages refuse any change that would leave the account with
-no member able to manage members, and tell the manager why a change was refused.
-The host app signs people in, sets which account a request belongs to, and
-supplies the members the members page lists, sends the invitations, and carries
-out the removals.
+account's roles, including each role's rank, limited to capabilities the manager
+holds, ranks up to their own, and roles ranked below them. The members page lets
+a manager invite a person, remove a member, and give a member a role or take one
+away, with removing and role changes limited to the members and roles ranked
+below the manager. Both sets of pages refuse any change that would leave the
+account with no member able to manage members, and tell the manager why a change
+was refused. The host app signs people in, sets which account a request belongs
+to, and supplies the members the members page lists, sends the invitations, and
+carries out the removals.
 
 ## Interface
 
@@ -42,9 +44,10 @@ two locals:
 - **citizen-develop** owns everything written against citizen after that:
   declaring the catalog, defining and seeding roles, assigning roles to members,
   checking capabilities, asking whether a manager's rank reaches a member or a
+  role, asking whether an editor may put a set of capabilities or a rank on a
   role, asking whether a change would remove the account's last member manager,
-  writing policies, configuring the members page, including how it invites
-  and removes, and the role pages, and rewording the refusal messages.
+  writing policies, configuring the members page, including how it invites and
+  removes, and the role pages, and rewording the refusal messages.
 
 ## How to use it
 
@@ -55,8 +58,9 @@ Decide which of the two you need, then go there.
   been installed after an update: use **citizen-install**.
 - Citizen is connected and you are adding a capability, a role, a template, a
   check on an action, a check on who may manage whom in the host's own screens,
-  a check that the host's own screens keep a member manager, setting up the
-  members page, its invitations and removals, or the role pages, or changing
+  a check on which capabilities and ranks an editor may set in the host's own
+  screens, a check that the host's own screens keep a member manager, setting up
+  the members page, its invitations and removals, or the role pages, or changing
   the wording of a refusal message: use **citizen-develop**.
 
 ## Conventions
@@ -89,14 +93,16 @@ Decide which of the two you need, then go there.
   set.
 - **Highest role** — the member's role in the account with the greatest rank. A
   member with no roles in the account ranks below every role.
-- **Reach** — the members and roles a manager may give, take or remove. A manager
-  reaches a role ranked below their highest role, and a member whose highest
-  role ranks below it.
+- **Reach** — the members, roles, capabilities and ranks a manager may act on. A
+  manager reaches a role ranked below their highest role, and a member whose
+  highest role ranks below it. A manager reaches the capabilities in their own
+  grants, and every rank up to and including their highest role's rank.
 - **Top rank** — the greatest rank among the account's roles. A manager whose
   highest role is at the top rank reaches every member and every role in the
-  account, including members at that rank and themselves. While every role keeps
-  the default rank of 0, every manager holding a role is at the top rank, so
-  ranks limit nothing until an account sets them.
+  account, including members at that rank and themselves. The top rank does not
+  widen which capabilities or ranks they may put on a role. While every role
+  keeps the default rank of 0, every manager holding a role is at the top rank,
+  so ranks limit no member or role until an account sets them.
 - **Member manager** — a member who holds a role in the account that includes
   the members capability.
 - **Last member manager** — the rule that an account always keeps at least one
@@ -108,18 +114,26 @@ Decide which of the two you need, then go there.
   through any other role. The rule holds whatever the members capability is
   named, and it applies to every manager, including one at the top rank.
 - **Role pages** — the engine's pages for the current account's roles. The list
-  shows each role's name and how many capabilities it holds, and each name opens
-  that role's edit form. The new and edit forms take a name, a rank and a
-  checkbox for every capability in the catalog. Rank does not limit the role
-  pages, so a person who may open them can change any role's rank or
-  capabilities. The one change they refuse is a capability edit that breaks the
-  last member manager rule. The form still shows that checkbox, and saving it
-  unticked returns to the edit form with a refusal message and leaves the role
-  unchanged.
+  shows every role's name and how many capabilities it holds, and each name
+  opens that role's edit form. The new and edit forms take a name, a rank of 0
+  or more, and a checkbox for every capability in the catalog. Saving is limited
+  by the editor limits and by the last member manager rule.
+- **Editor limits** — the changes the role pages refuse from a person who may
+  open them. Creating a role is refused when it sets a rank above the editor's
+  highest role, or includes a capability the editor does not hold. Saving an
+  edit is refused when the role does not rank below the editor's highest role,
+  unless the editor is at the top rank. Saving an edit is also refused when it
+  sets a rank above the editor's highest role, or ticks a capability the editor
+  does not hold. Capabilities already on the role may stay ticked or be unticked
+  whether or not the editor holds them. An editor below the top rank may create
+  a role at their own rank, and cannot change it after that. Every role still
+  appears in the list and its edit form still opens, and the limits apply only
+  when a form is saved.
 - **Adding from a template** — the role list shows an Add button for each default
   template, and hides that part of the page when the app has no default
-  templates. Unlike seeding, the button does not check whether the account
-  already has a role of that name.
+  templates. The button is refused when the template includes a capability the
+  editor does not hold. The added role has the default rank of 0. Unlike seeding,
+  the button does not check whether the account already has a role of that name.
 - **Members page** — the engine's page for the current account's members. It
   lists each member's name, email and the roles they hold in that account only,
   under a form for inviting a person. Beside each member the viewer reaches is a
@@ -162,11 +176,15 @@ Decide which of the two you need, then go there.
   account's roles and members cannot be read or changed from these pages.
 - **Refusal message** — what a manager sees when they may use the page but not
   make a particular change. Citizen changes nothing and sends them back with a
-  flash alert saying why: to the members page for a give, take or removal, and
-  to the role's edit form for a capability edit. Four reasons have a message: a
-  role outside the manager's reach, a member outside the manager's reach, a
-  member the host says may not be removed, and a change that breaks the last
-  member manager rule. The message shows only when the host's layout renders
+  flash alert saying why. Seven reasons have a message: a role outside the
+  manager's reach to give or take, a member outside the manager's reach, a
+  member the host says may not be removed, a change that breaks the last member
+  manager rule, a capability the editor does not hold, a rank above the editor's
+  own, and a role the editor may not change. A give, take or removal returns to
+  the members page. Adding from a template, and saving a role the editor may not
+  change, return to the role list. A refused new role returns to an empty new
+  role form, and any other refused edit returns to the role's edit form showing
+  the role as it was saved. The message shows only when the host's layout renders
   flash alerts, and the app can reword each one in its locale files.
 - The rule the gem follows: capabilities are code, roles are data, and Pundit
   enforces.

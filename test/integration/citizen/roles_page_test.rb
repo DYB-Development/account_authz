@@ -11,7 +11,7 @@ module Citizen
         permission :view_reports
       end
       @admin = ::Member.create!(account_id: 1, name: "Pretend Admin")
-      @admin.assign_role(Role.create!(account_id: 1, name: "Admin", capabilities: %w[manage_roles]))
+      @admin.assign_role(Role.create!(account_id: 1, name: "Admin", rank: 3, capabilities: %w[manage_roles view_reports]))
     end
 
     teardown { Citizen.reset! }
@@ -185,6 +185,55 @@ module Citizen
       patch "/citizen/roles/#{manager_role.id}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
+    end
+
+    test "an editor is refused a new role with a capability they do not hold" do
+      Citizen.catalog { permission :export_data }
+
+      post "/citizen/roles", params: { role: { name: "Pretend Role", capabilities: %w[export_data] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not Role.exists?(name: "Pretend Role")
+    end
+
+    test "an editor is refused adding a capability they do not hold to a role" do
+      Citizen.catalog { permission :export_data }
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Pretend Role", capabilities: %w[export_data] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_empty role.reload.capabilities
+    end
+
+    test "an editor is refused setting a role's rank above their own" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Pretend Role", rank: "5" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal 0, role.reload.rank
+    end
+
+    test "an editor is refused a new role ranked above their own" do
+      post "/citizen/roles", params: { role: { name: "Pretend Role", rank: "5" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not Role.exists?(name: "Pretend Role")
+    end
+
+    test "an editor is refused changing a role ranked above their own" do
+      Role.create!(account_id: 1, name: "Owner", rank: 9, capabilities: [])
+      role = Role.create!(account_id: 1, name: "Senior", rank: 4, capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Renamed" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal "Senior", role.reload.name
+    end
+
+    test "an editor is refused a template role with a capability they do not hold" do
+      Citizen.catalog { permission :export_data }
+      Citizen.templates { template :exporter, capabilities: %w[export_data] }
+
+      post "/citizen/roles", params: { template: "exporter", signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_not Role.exists?(name: "Exporter")
     end
   end
 end

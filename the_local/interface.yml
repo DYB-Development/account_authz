@@ -36,6 +36,8 @@ develop:
   - Citizen::Reach
   - reach.includes_member?
   - reach.includes_role?
+  - reach.includes_capabilities?
+  - reach.includes_rank?
   - Citizen::LastManager
   - citizen.refusals
   - last_manager.lost_by_taking?

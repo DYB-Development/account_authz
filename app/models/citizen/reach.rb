@@ -15,6 +15,14 @@ module Citizen
       top_rank? || role.rank < own_rank
     end
 
+    def includes_capabilities?(capabilities)
+      (Array(capabilities).map(&:to_sym) - @manager.capabilities(account_id: @account_id)).empty?
+    end
+
+    def includes_rank?(rank)
+      rank.to_i <= own_rank
+    end
+
     private
 
     def top_rank?
