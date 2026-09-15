@@ -9,5 +9,11 @@ module Citizen
     def self.requires_capability(&capability)
       before_action { head :forbidden unless can?(capability.call) }
     end
+
+    private
+
+    def refuse(reason, back_to:)
+      redirect_to back_to, alert: t("citizen.refusals.#{reason}")
+    end
   end
 end
