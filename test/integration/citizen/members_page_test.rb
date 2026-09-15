@@ -47,5 +47,15 @@ module Citizen
 
       assert_includes response.body, "Pretend Person"
     end
+
+    test "the members page shows each member's email" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_includes response.body, "pretend@example.com"
+    end
   end
 end
