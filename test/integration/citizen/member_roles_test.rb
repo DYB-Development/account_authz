@@ -109,5 +109,13 @@ module Citizen
 
       assert_equal "You can only change members ranked below you.", flash[:alert]
     end
+
+    test "the only manager refused taking away their members role is told why" do
+      manager_role = @manager.citizen_roles.first
+
+      delete "/citizen/members/#{@manager.id}/roles/#{manager_role.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
+    end
   end
 end

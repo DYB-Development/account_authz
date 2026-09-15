@@ -12,7 +12,7 @@ module Citizen
     end
 
     def destroy
-      return head :forbidden if LastManager.new(account_id: Current.account_id).lost_by_taking?(member, role)
+      return refuse(:last_manager) if LastManager.new(account_id: Current.account_id).lost_by_taking?(member, role)
 
       member.revoke_role(role)
 

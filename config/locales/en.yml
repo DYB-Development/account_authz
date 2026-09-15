@@ -3,3 +3,4 @@ en:
     refusals:
       role_out_of_reach: "You can only give or take roles ranked below your own."
       member_out_of_reach: "You can only change members ranked below you."
+      last_manager: "Someone else needs to be able to manage members first."
