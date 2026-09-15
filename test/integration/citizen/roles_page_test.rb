@@ -21,5 +21,13 @@ module Citizen
 
       assert_response :success
     end
+
+    test "a member who cannot manage roles is refused the roles page" do
+      member = ::Member.create!(account_id: 1, name: "Pretend Person")
+
+      get "/citizen/roles", params: { signed_in_member_id: member.id, account_id: 1 }
+
+      assert_response :forbidden
+    end
   end
 end
