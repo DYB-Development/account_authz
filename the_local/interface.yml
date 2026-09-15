@@ -32,6 +32,7 @@ develop:
   - Citizen::ApplicationPolicy
   - Citizen.members_source
   - Citizen.members_capability
+  - Citizen.roles_capability
 
 sources:
   - lib/citizen.rb
@@ -42,6 +43,9 @@ sources:
   - app/controllers/citizen/members_controller.rb
   - app/controllers/citizen/member_roles_controller.rb
   - app/views/citizen/members/index.html.erb
+  - app/controllers/citizen/roles_controller.rb
+  - app/views/citizen/roles/index.html.erb
+  - app/views/citizen/roles/_form.html.erb
   - app/controllers/citizen/application_controller.rb
   - app/helpers/citizen/app_routes_helper.rb
   - lib/citizen/reference/guide.md
