@@ -132,6 +132,19 @@ reach.includes_member?(member)   # => true/false
 reach.includes_role?(role)       # => true/false
 ```
 
+**Keeping a member manager.** An account always keeps at least one member who
+holds the members capability. Taking away that member's last members role,
+removing that member, or unticking the members capability on the only role
+anyone holds it through is refused with 403, and the members page hides those
+buttons. `Citizen::LastManager` answers the same questions for host code:
+
+```ruby
+last_manager = Citizen::LastManager.new(account_id: account.id)
+last_manager.lost_by_taking?(member, role)          # => true/false
+last_manager.lost_by_removing?(member)              # => true/false
+last_manager.lost_by_changing?(role, capabilities)  # => true/false
+```
+
 ### Install
 
 Citizen is a Rails engine; install it correctly with the engine flow — not a
