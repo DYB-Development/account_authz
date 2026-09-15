@@ -10,6 +10,6 @@ class MemberDirectory
   end
 
   def self.remove(member)
-    member.destroy!
+    member.update!(account_id: nil)
   end
 end

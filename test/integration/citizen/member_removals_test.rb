@@ -17,7 +17,7 @@ module Citizen
     test "a manager removes a member from the account" do
       delete "/citizen/members/#{@person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
-      assert_not ::Member.exists?(@person.id)
+      assert_nil @person.reload.account_id
     end
   end
 end
