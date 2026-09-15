@@ -16,7 +16,7 @@ module Citizen
     end
 
     def includes_capabilities?(capabilities)
-      false
+      (Array(capabilities).map(&:to_sym) - @manager.capabilities(account_id: @account_id)).empty?
     end
 
     private

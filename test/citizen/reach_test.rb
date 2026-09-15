@@ -76,5 +76,15 @@ module Citizen
     ensure
       Citizen.reset!
     end
+
+    test "a manager hands out capabilities they hold" do
+      Citizen.reset!
+      Citizen.catalog { permission :manage_roles }
+      @lead.assign_role(Role.create!(account_id: 1, name: "Role admin", rank: 1, capabilities: %w[manage_roles]))
+
+      assert Reach.new(@lead, account_id: 1).includes_capabilities?(%w[manage_roles])
+    ensure
+      Citizen.reset!
+    end
   end
 end
