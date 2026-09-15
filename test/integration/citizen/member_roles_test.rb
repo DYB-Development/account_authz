@@ -84,5 +84,13 @@ module Citizen
 
       assert_not_includes @person.citizen_roles, @role
     end
+
+    test "the only manager cannot take away their own members role" do
+      manager_role = @manager.citizen_roles.first
+
+      delete "/citizen/members/#{@manager.id}/roles/#{manager_role.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_includes @manager.citizen_roles, manager_role
+    end
   end
 end
