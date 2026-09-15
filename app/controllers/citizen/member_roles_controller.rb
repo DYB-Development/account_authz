@@ -1,6 +1,6 @@
 module Citizen
   class MemberRolesController < ApplicationController
-    before_action { head :forbidden unless can?(Citizen.members_capability) }
+    requires_capability { Citizen.members_capability }
 
     def create
       member.assign_role(role(params[:role_id]))
