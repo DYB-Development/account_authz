@@ -145,6 +145,13 @@ last_manager.lost_by_removing?(member)              # => true/false
 last_manager.lost_by_changing?(role, capabilities)  # => true/false
 ```
 
+**Editor limits.** On the role pages an editor can only create or add roles
+with capabilities they hold themselves, including roles added from a template,
+can only set a rank up to their own highest role, and can only change roles
+ranked below their own unless they hold the account's top rank.
+`reach.includes_capabilities?(capabilities)` and `reach.includes_rank?(rank)`
+answer the same questions for host code.
+
 **Refused changes.** When a manager tries a change their rank or the last
 manager rule does not allow, citizen sends them back to the page they came from
 with a flash alert saying why, and changes nothing. The host's layout shows the
@@ -158,6 +165,9 @@ en:
       member_out_of_reach: "You can only change members ranked below you."
       last_manager: "Someone else needs to be able to manage members first."
       not_removable: "This member can't be removed from the account."
+      capabilities_out_of_reach: "You can only give a role capabilities you have yourself."
+      rank_out_of_reach: "You can only set a rank up to your own."
+      role_edit_out_of_reach: "You can only change roles ranked below your own."
 ```
 
 A request from someone without the page's capability still gets 403.
