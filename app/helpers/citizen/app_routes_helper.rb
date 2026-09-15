@@ -1,17 +1,12 @@
 module Citizen
   module AppRoutesHelper
-    def method_missing(name, ...)
-      app_route?(name) ? main_app.public_send(name, ...) : super
-    end
-
-    def respond_to_missing?(name, include_private = false)
-      app_route?(name) || super
-    end
-
-    private
-
-    def app_route?(name)
-      name.end_with?("_path", "_url") && main_app.respond_to?(name)
+    def self.define_app_route_helpers
+      @app_route_helpers_defined ||= begin
+        (Rails.application.routes.named_routes.helper_names - Citizen::Engine.routes.named_routes.helper_names).each do |name|
+          define_method(name) { |*args, **options| main_app.public_send(name, *args, **options) }
+        end
+        true
+      end
     end
   end
 end
