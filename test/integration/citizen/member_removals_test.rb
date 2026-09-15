@@ -43,5 +43,11 @@ module Citizen
 
       assert_equal 1, @person.reload.account_id
     end
+
+    test "a member who cannot manage members cannot remove anyone" do
+      delete "/citizen/members/#{@manager.id}", params: { signed_in_member_id: @person.id, account_id: 1 }
+
+      assert_equal 1, @manager.reload.account_id
+    end
   end
 end
