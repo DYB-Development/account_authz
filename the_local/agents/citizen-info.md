@@ -1,6 +1,6 @@
 ---
 name: citizen-info
-description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, a members page, and Pundit enforcement.
+description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, a members page for giving and taking roles, and Pundit enforcement.
 tools: Read
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -20,9 +20,10 @@ Reach for it when the set of gated actions is decided by the developers but the
 bundling of those actions into roles is decided by each account. It is a Rails
 engine that stores roles and role assignments in its own tables, and it enforces
 through Pundit. It ships one page, the members page, which lists an account's
-members with their name, email and roles. The host app signs people in, sets
-which account a request belongs to, supplies the members the page lists, and
-builds any screen for managing roles.
+members with their name, email and roles, and lets a manager give a member a role
+or take one away. The host app signs people in, sets which account a request
+belongs to, supplies the members the page lists, and builds any screen for
+creating or editing roles.
 
 ## Interface
 
@@ -70,12 +71,17 @@ Decide which of the two you need, then go there.
   Checks made from a controller, a view or a policy count only the member's roles
   in the current account, and every check is denied when no current account is
   set.
-- **Members page** — the engine's one page, listing each member of the current
-  account with the roles they hold in that account only.
+- **Members page** — the engine's one page. It lists each member of the current
+  account with the roles they hold in that account only. Beside each member is a
+  Give button for every role of the account they do not hold and a Take button
+  for every role they do.
+- **Giving and taking** — assigning a role to a member, or removing one, from the
+  members page. Only members and roles of the current account can be given or
+  taken, and either action returns to the members page.
 - **Members source** — what the host supplies to tell the members page which
   members belong to an account.
-- **Members capability** — the capability a member needs to open the members
-  page, `manage_members` unless the app names another. Anyone without it, or a
-  request with no current account, is refused.
+- **Members capability** — the capability a person needs to open the members
+  page and to give or take roles there, `manage_members` unless the app names
+  another. Anyone without it, or a request with no current account, is refused.
 - The rule the gem follows: capabilities are code, roles are data, and Pundit
   enforces.
