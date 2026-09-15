@@ -44,6 +44,7 @@ sources:
   - lib/citizen/engine.rb
   - config/routes.rb
   - app/controllers/citizen/members_controller.rb
+  - app/controllers/citizen/invitations_controller.rb
   - app/controllers/citizen/member_roles_controller.rb
   - app/views/citizen/members/index.html.erb
   - app/controllers/citizen/roles_controller.rb
