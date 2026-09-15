@@ -37,5 +37,15 @@ module Citizen
 
       assert_response :forbidden
     end
+
+    test "the members page lists each member of the current account by name" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      ::Member.create!(account_id: 1, name: "Pretend Person")
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_includes response.body, "Pretend Person"
+    end
   end
 end

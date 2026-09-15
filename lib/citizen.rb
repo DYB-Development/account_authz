@@ -8,6 +8,10 @@ require_relative "citizen/templates"
 module Citizen
   class Error < StandardError; end
 
+  class << self
+    attr_accessor :members_source
+  end
+
   def self.catalog(&block)
     @catalog ||= Catalog.new
     @catalog.instance_eval(&block) if block
