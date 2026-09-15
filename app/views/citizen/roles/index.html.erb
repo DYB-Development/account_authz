@@ -1,3 +1,4 @@
+<%= link_to "New role", new_role_path %>
 <% @roles.each do |role| %>
   <p><%= link_to role.name, edit_role_path(role) %></p>
 <% end %>

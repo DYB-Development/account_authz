@@ -138,5 +138,11 @@ module Citizen
 
       assert_select "a[href=?]", "/citizen/roles/#{role.id}/edit"
     end
+
+    test "the roles page links to the new role form" do
+      get "/citizen/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_select "a[href=?]", "/citizen/roles/new"
+    end
   end
 end
