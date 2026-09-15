@@ -4,6 +4,7 @@ module Citizen
 
     def index
       @members = Citizen.members_source.call(Current.account_id)
+      @roles = Role.in_account(Current.account_id)
     end
   end
 end

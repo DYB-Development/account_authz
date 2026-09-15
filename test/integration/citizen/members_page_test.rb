@@ -89,5 +89,16 @@ module Citizen
 
       assert_response :success
     end
+
+    test "the members page offers to give a member a role they do not hold" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/citizen/members/#{person.id}/roles", role.id.to_s
+    end
   end
 end
