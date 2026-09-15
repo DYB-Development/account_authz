@@ -184,5 +184,15 @@ module Citizen
 
       assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}"
     end
+
+    test "the members page does not offer to remove the account owner" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      owner = ::Member.create!(account_id: 1, name: "Pretend Owner", owner: true)
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?]", "/citizen/members/#{owner.id}", count: 0
+    end
   end
 end
