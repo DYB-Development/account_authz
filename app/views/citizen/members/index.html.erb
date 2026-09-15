@@ -32,7 +32,7 @@
                 <% end %>
               <% end %>
             <% end %>
-            <% if Citizen.members_source.removable?(member) %>
+            <% if Citizen.members_source.removable?(member) && !@last_manager.lost_by_removing?(member) %>
               <%= ui_form(action: member_path(member), method: :delete) do %>
                 <%= ui_button(label: "Remove", variant: :danger, size: :sm) %>
               <% end %>
