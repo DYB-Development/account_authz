@@ -3,7 +3,10 @@ module Citizen
     requires_capability { Citizen.members_capability }
 
     def create
-      member.assign_role(role(params[:role_id]))
+      role = role(params[:role_id])
+      return head :forbidden unless reach.includes_role?(role)
+
+      member.assign_role(role)
 
       redirect_to members_path
     end
@@ -15,6 +18,10 @@ module Citizen
     end
 
     private
+
+    def reach
+      Reach.new(current_member, account_id: Current.account_id)
+    end
 
     def member
       Citizen.members_source.call(Current.account_id).find(params[:member_id])

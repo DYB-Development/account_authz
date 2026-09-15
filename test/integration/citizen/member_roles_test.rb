@@ -58,5 +58,13 @@ module Citizen
 
       assert_includes @person.citizen_roles, @role
     end
+
+    test "a manager cannot give a role ranked at or above their own" do
+      owner = Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: [])
+
+      post "/citizen/members/#{@person.id}/roles", params: { role_id: owner.id, signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_empty @person.citizen_roles
+    end
   end
 end
