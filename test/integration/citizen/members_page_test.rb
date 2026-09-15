@@ -19,5 +19,14 @@ module Citizen
 
       assert_response :success
     end
+
+    test "a member who cannot manage members is refused the members page" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Viewer", capabilities: []))
+
+      get "/citizen/members", params: { member_id: member.id, account_id: 1 }
+
+      assert_response :forbidden
+    end
   end
 end

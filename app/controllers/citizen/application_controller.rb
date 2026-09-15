@@ -1,4 +1,5 @@
 module Citizen
-  class ApplicationController < ActionController::Base
+  class ApplicationController < ::ApplicationController
+    include Citizen::Authorization
   end
 end
