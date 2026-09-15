@@ -34,5 +34,13 @@ module Citizen
 
       assert_empty @person.citizen_roles
     end
+
+    test "a manager cannot give a role to a member of another account" do
+      outsider = ::Member.create!(account_id: 2, name: "Pretend Outsider")
+
+      post "/citizen/members/#{outsider.id}/roles", params: { role_id: @role.id, signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_empty outsider.citizen_roles
+    end
   end
 end
