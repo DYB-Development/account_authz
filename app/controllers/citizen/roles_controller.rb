@@ -6,6 +6,10 @@ module Citizen
       @roles = Role.in_account(Current.account_id)
     end
 
+    def new
+      @role = Role.new(account_id: Current.account_id)
+    end
+
     def create
       if params[:template].present?
         Role.from_template(account_id: Current.account_id, template: params[:template].to_sym)

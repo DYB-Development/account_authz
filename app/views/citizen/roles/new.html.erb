@@ -1,0 +1,5 @@
+<%= form_with model: @role, url: roles_path, scope: :role do |form| %>
+  <%= form.text_field :name %>
+  <%= form.collection_check_boxes :capabilities, Citizen.capabilities, :to_s, :to_s %>
+  <%= form.submit "Save" %>
+<% end %>

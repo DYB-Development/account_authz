@@ -108,5 +108,11 @@ module Citizen
 
       assert_empty role.reload.capabilities
     end
+
+    test "the new role form offers a checkbox for each capability in the catalog" do
+      get "/citizen/roles/new", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal %w[manage_roles view_reports], css_select("form[action='/citizen/roles'] input[type=checkbox][name='role[capabilities][]']").map { |box| box["value"] }
+    end
   end
 end
