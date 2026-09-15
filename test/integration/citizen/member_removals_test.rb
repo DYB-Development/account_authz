@@ -35,5 +35,13 @@ module Citizen
 
       assert_equal 1, @person.reload.account_id
     end
+
+    test "nobody can remove the account owner" do
+      @person.update!(owner: true)
+
+      delete "/citizen/members/#{@person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal 1, @person.reload.account_id
+    end
   end
 end

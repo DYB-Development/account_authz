@@ -9,6 +9,10 @@ class MemberDirectory
     Member.create!(account_id: account_id, name: name, email: email)
   end
 
+  def self.removable?(member)
+    !member.owner?
+  end
+
   def self.remove(member)
     member.update!(account_id: nil)
   end
