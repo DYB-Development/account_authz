@@ -2,7 +2,7 @@ module Citizen
   class MemberRolesController < ApplicationController
     requires_capability { Citizen.members_capability }
 
-    before_action { head :forbidden unless reach.includes_role?(role) }
+    before_action { head :forbidden unless reach.includes_member?(member) && reach.includes_role?(role) }
 
     def create
       member.assign_role(role)
@@ -19,11 +19,11 @@ module Citizen
     private
 
     def reach
-      Reach.new(current_member, account_id: Current.account_id)
+      @reach ||= Reach.new(current_member, account_id: Current.account_id)
     end
 
     def member
-      Citizen.members_source.call(Current.account_id).find(params[:member_id])
+      @member ||= Citizen.members_source.call(Current.account_id).find(params[:member_id])
     end
 
     def role
