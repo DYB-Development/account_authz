@@ -130,5 +130,13 @@ module Citizen
 
       assert_select "form[action='/citizen/roles'][method=post] input[name=template][value=reporter]"
     end
+
+    test "the roles page links to each role's edit form" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      get "/citizen/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_select "a[href=?]", "/citizen/roles/#{role.id}/edit"
+    end
   end
 end
