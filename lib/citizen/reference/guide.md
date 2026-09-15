@@ -78,6 +78,22 @@ account is set. Controllers include `Citizen::Authorization` (which mixes in
 `Pundit::Authorization` and exposes a `can?` helper). `Citizen::Current.account_id`
 scopes per-request resolution.
 
+**Members page (engine).** Mount the engine and a member who holds the members
+capability in the current account sees each member's name, email and roles in
+that account. Anyone else, or a request with no current account, gets 403.
+
+```ruby
+mount Citizen::Engine => "/citizen"   # members page at /citizen/members
+
+Citizen.members_source = ->(account_id) { Membership.where(account_id: account_id) }
+Citizen.members_capability = :manage_team   # default :manage_members
+```
+
+The source returns the account's members; each responds to `name` and `email`
+and includes `Citizen::Member`. Engine controllers inherit the host's
+`ApplicationController`, so the host's sign-in, `current_member` and
+`Citizen::Current.account_id` apply.
+
 ### Install
 
 Citizen is a Rails engine; install it correctly with the engine flow — not a
@@ -101,8 +117,11 @@ plain `gem install`:
 6. Optional: declare templates with `Citizen.templates`, and call
    `Citizen.seed_default_roles(account_id)` when provisioning a new account.
 
-Citizen owns no role *storage* beyond its own tables and no UI — the host drives
-assignment and sets the current account.
+7. Optional: mount `Citizen::Engine` and set `Citizen.members_source` to serve
+   the members page.
+
+Citizen owns no role *storage* beyond its own tables. The host signs members in,
+sets the current account, and supplies the members the members page lists.
 
 ### Citizen conventions
 

@@ -1,0 +1,93 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+module Citizen
+  class MembersPageTest < ActionDispatch::IntegrationTest
+    setup do
+      Citizen.reset!
+      Citizen.catalog { permission :manage_members }
+    end
+
+    teardown { Citizen.reset! }
+
+    test "a member who can manage members opens the members page" do
+      manager = ::Member.create!
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_response :success
+    end
+
+    test "a member who cannot manage members is refused the members page" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Viewer", capabilities: []))
+
+      get "/citizen/members", params: { member_id: member.id, account_id: 1 }
+
+      assert_response :forbidden
+    end
+
+    test "the members page is refused when no current account is set" do
+      manager = ::Member.create!
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+
+      get "/citizen/members", params: { member_id: manager.id }
+
+      assert_response :forbidden
+    end
+
+    test "the members page lists each member of the current account by name" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      ::Member.create!(account_id: 1, name: "Pretend Person")
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_includes response.body, "Pretend Person"
+    end
+
+    test "the members page shows each member's email" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_includes response.body, "pretend@example.com"
+    end
+
+    test "the members page shows the roles each member holds" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+      person.assign_role(Role.create!(account_id: 1, name: "Pretend Role", capabilities: []))
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_includes response.body, "Pretend Role"
+    end
+
+    test "the members page leaves out roles a member holds in another account" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      manager.assign_role(Role.create!(account_id: 2, name: "Other Account Role", capabilities: []))
+
+      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+
+      assert_not_includes response.body, "Other Account Role"
+    end
+
+    test "the members page opens for the capability the app names for managing members" do
+      Citizen.catalog { permission :manage_team }
+      Citizen.members_capability = :manage_team
+      lead = ::Member.create!(account_id: 1, name: "Pretend Lead")
+      lead.assign_role(Role.create!(account_id: 1, name: "Lead", capabilities: %w[manage_team]))
+
+      get "/citizen/members", params: { member_id: lead.id, account_id: 1 }
+
+      assert_response :success
+    end
+  end
+end

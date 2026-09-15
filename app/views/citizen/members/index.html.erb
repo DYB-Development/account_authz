@@ -1,0 +1,3 @@
+<% @members.each do |member| %>
+  <p><%= member.name %> <%= member.email %> <%= member.citizen_roles.in_account(Citizen::Current.account_id).map(&:name).join(", ") %></p>
+<% end %>

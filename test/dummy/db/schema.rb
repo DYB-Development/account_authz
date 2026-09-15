@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_07_000003) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_15_000001) do
   create_table "citizen_assignments", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "member_id", null: false
@@ -32,7 +32,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_000003) do
   end
 
   create_table "members", force: :cascade do |t|
+    t.bigint "account_id"
     t.datetime "created_at", null: false
+    t.string "email"
+    t.string "name"
     t.datetime "updated_at", null: false
   end
 end

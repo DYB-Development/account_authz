@@ -1,6 +1,6 @@
 ---
 name: citizen-info
-description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, and Pundit enforcement.
+description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, a members page, and Pundit enforcement.
 tools: Read
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -19,8 +19,10 @@ they see.
 Reach for it when the set of gated actions is decided by the developers but the
 bundling of those actions into roles is decided by each account. It is a Rails
 engine that stores roles and role assignments in its own tables, and it enforces
-through Pundit. It ships no screens: the host app builds the UI for managing
-roles and sets which account a request belongs to.
+through Pundit. It ships one page, the members page, which lists an account's
+members with their name, email and roles. The host app signs people in, sets
+which account a request belongs to, supplies the members the page lists, and
+builds any screen for managing roles.
 
 ## Interface
 
@@ -28,20 +30,20 @@ This local declares no commands. Citizen's surface is split between the other
 two locals:
 
 - **citizen-install** owns adding the gem to a Rails app, installing its
-  migrations, and connecting the host's member model, its controllers, and the
-  per-request account.
+  migrations, connecting the host's member model and controllers, setting the
+  per-request account, and mounting the engine.
 - **citizen-develop** owns everything written against citizen after that:
   declaring the catalog, defining and seeding roles, assigning roles to members,
-  checking capabilities, and writing policies.
+  checking capabilities, writing policies, and configuring the members page.
 
 ## How to use it
 
 Decide which of the two you need, then go there.
 
-- Citizen is not yet in the app, or a model or controller is not yet connected
-  to it: use **citizen-install**.
-- Citizen is connected and you are adding a capability, a role, a template, or a
-  check on an action: use **citizen-develop**.
+- Citizen is not yet in the app, a model or controller is not yet connected to
+  it, or the engine is not yet mounted: use **citizen-install**.
+- Citizen is connected and you are adding a capability, a role, a template, a
+  check on an action, or setting up the members page: use **citizen-develop**.
 
 ## Conventions
 
@@ -65,8 +67,15 @@ Decide which of the two you need, then go there.
 - **Approved metrics** — the metrics in the catalog that appear in a member's
   grants.
 - **Current account** — the account a request is acting in, set by the host.
-  Checks made from a controller or view count only the roles in the current
-  account. Checks made inside a policy count the member's roles in every
-  account.
+  Checks made from a controller, a view or a policy count only the member's roles
+  in the current account, and every check is denied when no current account is
+  set.
+- **Members page** — the engine's one page, listing each member of the current
+  account with the roles they hold in that account only.
+- **Members source** — what the host supplies to tell the members page which
+  members belong to an account.
+- **Members capability** — the capability a member needs to open the members
+  page, `manage_members` unless the app names another. Anyone without it, or a
+  request with no current account, is refused.
 - The rule the gem follows: capabilities are code, roles are data, and Pundit
   enforces.
