@@ -32,6 +32,9 @@
                 <% end %>
               <% end %>
             <% end %>
+            <%= ui_form(action: member_path(member), method: :delete) do %>
+              <%= ui_button(label: "Remove", variant: :danger, size: :sm) %>
+            <% end %>
           <% end %>
         <% end %>
       <% end %>

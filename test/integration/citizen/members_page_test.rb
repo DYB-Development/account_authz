@@ -174,5 +174,15 @@ module Citizen
 
       assert_select "form[action='/citizen/invitations'][method=post] input[name='invitation[email]']"
     end
+
+    test "the members page offers to remove a member within the viewer's reach" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}"
+    end
   end
 end
