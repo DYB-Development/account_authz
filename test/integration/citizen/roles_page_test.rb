@@ -62,5 +62,11 @@ module Citizen
 
       assert Role.in_account(1).exists?(name: "Pretend Role")
     end
+
+    test "a new role holds the capabilities chosen for it" do
+      post "/citizen/roles", params: { role: { name: "Pretend Role", capabilities: %w[view_reports] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal %w[view_reports], Role.in_account(1).find_by(name: "Pretend Role").capabilities
+    end
   end
 end

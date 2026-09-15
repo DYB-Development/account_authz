@@ -15,7 +15,7 @@ module Citizen
     private
 
     def role_params
-      params.require(:role).permit(:name).to_h.symbolize_keys
+      params.require(:role).permit(:name, capabilities: []).to_h.symbolize_keys
     end
   end
 end
