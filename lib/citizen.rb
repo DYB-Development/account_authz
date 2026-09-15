@@ -10,10 +10,14 @@ module Citizen
 
   class << self
     attr_accessor :members_source
-    attr_writer :members_capability
+    attr_writer :members_capability, :roles_capability
 
     def members_capability
       @members_capability || :manage_members
+    end
+
+    def roles_capability
+      @roles_capability || :manage_roles
     end
   end
 
@@ -38,6 +42,7 @@ module Citizen
     @catalog = nil
     @templates = nil
     @members_capability = nil
+    @roles_capability = nil
   end
 
   def self.capabilities

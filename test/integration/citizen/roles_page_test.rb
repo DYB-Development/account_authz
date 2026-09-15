@@ -29,5 +29,16 @@ module Citizen
 
       assert_response :forbidden
     end
+
+    test "the roles page opens for the capability the app names for managing roles" do
+      Citizen.catalog { permission :manage_team }
+      Citizen.roles_capability = :manage_team
+      lead = ::Member.create!(account_id: 1, name: "Pretend Lead")
+      lead.assign_role(Role.create!(account_id: 1, name: "Lead", capabilities: %w[manage_team]))
+
+      get "/citizen/roles", params: { signed_in_member_id: lead.id, account_id: 1 }
+
+      assert_response :success
+    end
   end
 end
