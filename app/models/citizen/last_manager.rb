@@ -14,6 +14,10 @@ module Citizen
       managing_assignments.where.not(member: member).none?
     end
 
+    def lost_by_changing?(role, capabilities)
+      managing_role_ids.include?(role.id) && !grants_members_capability?(capabilities) && managing_assignments.where.not(role: role).none?
+    end
+
     private
 
     def managing_assignments
@@ -21,7 +25,11 @@ module Citizen
     end
 
     def managing_role_ids
-      Role.in_account(@account_id).select { |role| Citizen.can?(role.capabilities.map(&:to_sym), Citizen.members_capability) }.map(&:id)
+      @managing_role_ids ||= Role.in_account(@account_id).select { |role| grants_members_capability?(role.capabilities) }.map(&:id)
+    end
+
+    def grants_members_capability?(capabilities)
+      Citizen.can?(Array(capabilities).map(&:to_sym), Citizen.members_capability)
     end
   end
 end

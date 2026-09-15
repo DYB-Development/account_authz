@@ -166,5 +166,15 @@ module Citizen
 
       assert_select "input[name='role[rank]'][value='3']"
     end
+
+    test "the members capability cannot be taken off the only role that lets anyone manage members" do
+      Citizen.catalog { permission :manage_members }
+      manager_role = Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members])
+      @admin.assign_role(manager_role)
+
+      patch "/citizen/roles/#{manager_role.id}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal %w[manage_members], manager_role.reload.capabilities
+    end
   end
 end
