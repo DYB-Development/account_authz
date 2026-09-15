@@ -20,5 +20,11 @@ module Citizen
 
       assert_includes @person.citizen_roles, @role
     end
+
+    test "a member who cannot manage members cannot give a role" do
+      post "/citizen/members/#{@person.id}/roles", params: { role_id: @role.id, signed_in_member_id: @person.id, account_id: 1 }
+
+      assert_empty @person.citizen_roles
+    end
   end
 end
