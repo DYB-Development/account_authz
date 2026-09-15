@@ -23,5 +23,9 @@ module Citizen
 
       assert_not LastManager.new(account_id: 1).lost_by_taking?(@manager, @manager_role)
     end
+
+    test "removing the only member who can manage members loses the last manager" do
+      assert LastManager.new(account_id: 1).lost_by_removing?(@manager)
+    end
   end
 end

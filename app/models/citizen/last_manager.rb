@@ -10,6 +10,10 @@ module Citizen
       managing_assignments.where.not(member: member, role: role).none?
     end
 
+    def lost_by_removing?(member)
+      managing_assignments.where.not(member: member).none?
+    end
+
     private
 
     def managing_assignments
