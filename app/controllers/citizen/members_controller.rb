@@ -10,7 +10,10 @@ module Citizen
 
     def destroy
       member = Citizen.members_source.members(Current.account_id).find(params[:id])
-      Citizen.members_source.remove(member)
+      ApplicationRecord.transaction do
+        member.citizen_roles.in_account(Current.account_id).each { |role| member.revoke_role(role) }
+        Citizen.members_source.remove(member)
+      end
 
       redirect_to members_path
     end

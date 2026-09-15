@@ -19,5 +19,13 @@ module Citizen
 
       assert_nil @person.reload.account_id
     end
+
+    test "a removed member loses the roles they held in the account" do
+      @person.assign_role(Role.create!(account_id: 1, name: "Worker", capabilities: []))
+
+      delete "/citizen/members/#{@person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_empty @person.citizen_roles.in_account(1)
+    end
   end
 end
