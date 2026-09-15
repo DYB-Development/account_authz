@@ -1,6 +1,9 @@
 <% @members.each do |member| %>
   <% held = member.citizen_roles.in_account(Citizen::Current.account_id).to_a %>
   <p><%= member.name %> <%= member.email %> <%= held.map(&:name).join(", ") %></p>
+  <% held.each do |role| %>
+    <%= button_to "Take #{role.name}", member_role_path(member, role), method: :delete %>
+  <% end %>
   <% (@roles - held).each do |role| %>
     <%= button_to "Give #{role.name}", member_roles_path(member), params: { role_id: role.id } %>
   <% end %>

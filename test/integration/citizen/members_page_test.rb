@@ -100,5 +100,17 @@ module Citizen
 
       assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/citizen/members/#{person.id}/roles", role.id.to_s
     end
+
+    test "the members page offers to take away a role a member holds" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+      person.assign_role(role)
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}/roles/#{role.id}"
+    end
   end
 end
