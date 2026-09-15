@@ -73,7 +73,8 @@ member.approved_metrics(account_id: 1)
 
 **Pundit bridge.** Policies inherit `Citizen::ApplicationPolicy` —
 `initialize(member, record)` with `#can?(capability)` delegating to
-`member.can?`. Controllers include `Citizen::Authorization` (which mixes in
+`member.can?` within `Citizen::Current.account_id`, and denying when no current
+account is set. Controllers include `Citizen::Authorization` (which mixes in
 `Pundit::Authorization` and exposes a `can?` helper). `Citizen::Current.account_id`
 scopes per-request resolution.
 

@@ -59,7 +59,7 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
    end
    ```
 
-   The base class defines no `Scope`, so a policy used with `policy_scope` needs its own. The `member` a policy receives is the object Pundit passes as its user, and it must be an instance of the host's role-holding model. The base `can?(capability)` calls `member.can?(capability)` with no `account_id`, so it answers across every account the member belongs to. Ask the developer whether policies must be limited to the current account, and if so call `member.can?(capability, account_id: <the current request's account id>)` in the policy instead of `can?`.
+   The base class defines no `Scope`, so a policy used with `policy_scope` needs its own. The `member` a policy receives is the object Pundit passes as its user, and it must be an instance of the host's role-holding model. The base `can?(capability)` checks only the roles the member holds in the current request's account, and it returns false when no current account is set, so the request must set the current account before any policy runs. The controller `can?` helper follows the same rule.
 
 8. **Reset in tests.** Call `Citizen.reset!` in test setup when a test declares its own catalog or templates, then declare what the test needs. After `reset!` the catalog is empty, so creating any role with capabilities fails validation until the catalog is declared again.
 
