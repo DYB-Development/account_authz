@@ -10,6 +10,11 @@ module Citizen
 
   class << self
     attr_accessor :members_source
+    attr_writer :members_capability
+
+    def members_capability
+      @members_capability || :manage_members
+    end
   end
 
   def self.catalog(&block)
@@ -32,6 +37,7 @@ module Citizen
   def self.reset!
     @catalog = nil
     @templates = nil
+    @members_capability = nil
   end
 
   def self.capabilities

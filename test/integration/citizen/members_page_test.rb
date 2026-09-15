@@ -78,5 +78,16 @@ module Citizen
 
       assert_not_includes response.body, "Other Account Role"
     end
+
+    test "the members page opens for the capability the app names for managing members" do
+      Citizen.catalog { permission :manage_team }
+      Citizen.members_capability = :manage_team
+      lead = ::Member.create!(account_id: 1, name: "Pretend Lead")
+      lead.assign_role(Role.create!(account_id: 1, name: "Lead", capabilities: %w[manage_team]))
+
+      get "/citizen/members", params: { member_id: lead.id, account_id: 1 }
+
+      assert_response :success
+    end
   end
 end
