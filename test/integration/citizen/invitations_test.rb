@@ -18,5 +18,13 @@ module Citizen
 
       assert ::Member.exists?(account_id: 1, email: "pretend@example.com")
     end
+
+    test "a member who cannot manage members cannot invite anyone" do
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+
+      post "/citizen/invitations", params: { invitation: { name: "Pretend Guest", email: "guest@example.com" }, signed_in_member_id: person.id, account_id: 1 }
+
+      assert_not ::Member.exists?(email: "guest@example.com")
+    end
   end
 end
