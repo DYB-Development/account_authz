@@ -92,5 +92,13 @@ module Citizen
 
       assert_equal "Renamed Role", role.reload.name
     end
+
+    test "a member who can manage roles cannot change another account's role" do
+      role = Role.create!(account_id: 2, name: "Other Account Role", capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Renamed Role" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal "Other Account Role", role.reload.name
+    end
   end
 end
