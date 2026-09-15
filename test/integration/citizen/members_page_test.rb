@@ -112,5 +112,14 @@ module Citizen
 
       assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}/roles/#{role.id}"
     end
+
+    test "the members page renders inside the app's layout" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "meta[name=application-name][content=Dummy]"
+    end
   end
 end
