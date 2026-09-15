@@ -27,7 +27,8 @@ account's roles, including each role's rank, limited to capabilities the manager
 holds, ranks up to their own, and roles ranked below them. The members page lets
 a manager invite a person, remove a member, and give a member a role or take one
 away, with removing and role changes limited to the members and roles ranked
-below the manager. Both sets of pages refuse any change that would leave the
+below the manager. The members page links to the role pages and the role pages
+link back, so the host's navigation needs one link to reach both. Both sets of pages refuse any change that would leave the
 account with no member able to manage members, and tell the manager why a change
 was refused. The host app signs people in, sets which account a request belongs
 to, and supplies the members the members page lists, sends the invitations, and
@@ -115,7 +116,9 @@ Decide which of the two you need, then go there.
   named, and it applies to every manager, including one at the top rank.
 - **Role pages** — the engine's pages for the current account's roles. The list
   shows every role's name and how many capabilities it holds, and each name
-  opens that role's edit form. The new and edit forms take a name, a rank of 0
+  opens that role's edit form. Above the list is a Members link back to the
+  members page, shown to every viewer, and a viewer without the members
+  capability who follows it gets a forbidden response. The new and edit forms take a name, a rank of 0
   or more, and a checkbox for every capability in the catalog. Saving is limited
   by the editor limits and by the last member manager rule.
 - **Editor limits** — the changes the role pages refuse from a person who may
@@ -136,7 +139,9 @@ Decide which of the two you need, then go there.
   the button does not check whether the account already has a role of that name.
 - **Members page** — the engine's page for the current account's members. It
   lists each member's name, email and the roles they hold in that account only,
-  under a form for inviting a person. Beside each member the viewer reaches is a
+  under a form for inviting a person. Beside the page title is a Roles link to
+  the role pages, shown only to a viewer who holds the roles capability in the
+  current account. Beside each member the viewer reaches is a
   Give button for every role within reach the member does not hold, and a Take
   button for every role within reach they do. It also shows a Remove button when
   the host says that member may be removed. A Take or Remove button that would

@@ -108,7 +108,9 @@ layout the host's `ApplicationController` uses, so the host loads keystone_ui's
 styles. Route helpers in that layout, such as `root_path`, reach the host's own
 routes without a `main_app.` prefix.
 
-**Role pages (engine).** At `/citizen/roles`, a member who holds the roles
+**Role pages (engine).** The members page links to them with a Roles link
+shown only to people who hold the roles capability, and the roles page links
+back to the members page, so an app needs one navigation entry for both. At `/citizen/roles`, a member who holds the roles
 capability in the current account lists that account's roles, creates a role
 with a name and chosen capabilities, adds a role from each default template,
 and renames a role or changes its capabilities. Anyone else, or a request with

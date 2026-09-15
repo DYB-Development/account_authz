@@ -1,4 +1,5 @@
 <%= ui_page(max_width: :lg) do %>
+  <%= ui_button(label: "Members", href: members_path, variant: :secondary, size: :sm) %>
   <%= ui_section(title: "Roles", action: { label: "New role", href: new_role_path }) do %>
     <% rows = @roles.map { |role| { role: role, name: role.name, capabilities: Array(role.capabilities).size } } %>
     <%= ui_data_table(items: rows, columns: [{ name: "Name" }, { capabilities: "Capabilities" }], empty_message: "No roles yet") do |table| %>
