@@ -100,6 +100,16 @@ layout the host's `ApplicationController` uses, so the host loads keystone_ui's
 styles. Route helpers in that layout, such as `root_path`, reach the host's own
 routes without a `main_app.` prefix.
 
+**Role pages (engine).** At `/citizen/roles`, a member who holds the roles
+capability in the current account lists that account's roles, creates a role
+with a name and chosen capabilities, adds a role from each default template,
+and renames a role or changes its capabilities. Anyone else, or a request with
+no current account, gets 403, and another account's roles cannot be changed.
+
+```ruby
+Citizen.roles_capability = :manage_team   # default :manage_roles
+```
+
 ### Install
 
 Citizen is a Rails engine; install it correctly with the engine flow — not a
