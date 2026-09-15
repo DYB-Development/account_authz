@@ -37,6 +37,7 @@ develop:
   - reach.includes_member?
   - reach.includes_role?
   - Citizen::LastManager
+  - citizen.refusals
   - last_manager.lost_by_taking?
   - last_manager.lost_by_removing?
   - last_manager.lost_by_changing?
@@ -54,6 +55,7 @@ sources:
   - app/controllers/citizen/roles_controller.rb
   - app/models/citizen/reach.rb
   - app/models/citizen/last_manager.rb
+  - config/locales/en.yml
   - app/views/citizen/roles/index.html.erb
   - app/views/citizen/roles/_form.html.erb
   - app/controllers/citizen/application_controller.rb
