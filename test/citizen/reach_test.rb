@@ -55,5 +55,13 @@ module Citizen
 
       assert_not Reach.new(@lead, account_id: 1).includes_role?(co_lead)
     end
+
+    test "ranks held in another account do not count" do
+      @lead.assign_role(Role.create!(account_id: 2, name: "Elsewhere Owner", rank: 9, capabilities: []))
+      @person.assign_role(Role.create!(account_id: 1, name: "Co-lead", rank: 1, capabilities: []))
+      Role.create!(account_id: 1, name: "Owner", rank: 2, capabilities: [])
+
+      assert_not Reach.new(@lead, account_id: 1).includes_member?(@person)
+    end
   end
 end
