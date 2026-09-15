@@ -95,7 +95,10 @@ Citizen.members_capability = :manage_team   # default :manage_members
 The source returns the account's members as a relation that responds to `find`; each responds to `name` and `email`
 and includes `Citizen::Member`. Engine controllers inherit the host's
 `ApplicationController`, so the host's sign-in, `current_member` and
-`Citizen::Current.account_id` apply.
+`Citizen::Current.account_id` apply. The page renders with keystone_ui inside the
+layout the host's `ApplicationController` uses, so the host loads keystone_ui's
+styles. Route helpers in that layout, such as `root_path`, reach the host's own
+routes without a `main_app.` prefix.
 
 ### Install
 

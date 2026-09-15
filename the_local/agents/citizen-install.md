@@ -11,12 +11,12 @@ You follow the steps below exactly, in order, and invent none. Where a step says
 A Rails engine for capability-based authorization in multi-tenant apps, hooked in when a host needs account-scoped roles enforced through Pundit.
 
 ## Interface
-- `gem "citizen"` — adds the engine to the host's Gemfile, and brings in `pundit` as a dependency.
+- `gem "citizen"` — adds the engine to the host's Gemfile, and brings in `pundit` and `keystone_ui` as dependencies.
 - `bin/rails citizen:install:migrations` — copies the engine's two migrations into the host's `db/migrate/`.
 - `Citizen::Member` — a model concern included in the host model that holds roles, giving it role assignments.
 - `Citizen::Authorization` — a controller concern that includes `Pundit::Authorization` and adds a `can?(capability)` helper to controllers and views.
 - `Citizen::Current.account_id` — the per-request account that the `can?` helper scopes its answer to.
-- `mount Citizen::Engine` — a line in the host's `config/routes.rb` that serves the members page, which lists each member of the current account with their name, email and roles, and gives or takes away that account's roles.
+- `mount Citizen::Engine` — a line in the host's `config/routes.rb` that serves the members page, which lists each member of the current account with their name, email and roles, and gives or takes away that account's roles. The page is built from keystone_ui components and shown inside the host's own layout.
 
 ## How to use it
 1. Confirm the host runs Ruby 3.2 or later and Rails 7.1 or later.
@@ -39,6 +39,8 @@ A Rails engine for capability-based authorization in multi-tenant apps, hooked i
 11. Ask the developer whether they want the members page. If they do not, skip this step. If they do, ask which path to serve it under, offering `/citizen`, and add `mount Citizen::Engine => "/citizen"` with that path to `config/routes.rb`. The page is then at that path followed by `/members`.
    - Each listed member has a `Give <role>` button for every role in the current account the member does not hold, and a `Take <role>` button for every role they hold. Each button submits a form and then returns to the members page.
    - The engine's controllers inherit the host's `ApplicationController`, so the sign-in, `current_member`, current account and CSRF protection from the host apply to the page and its buttons.
+   - The page renders inside the layout the host's `ApplicationController` uses, such as `app/views/layouts/application.html.erb`. Route helpers in that layout, such as `root_path`, reach the host's own routes on the page without a `main_app.` prefix, so the layout needs no change for them.
+   - The page is built from keystone_ui components and ships no stylesheet of its own, so that layout must load keystone_ui's styles. Check whether the host already loads them. If it does not and the host has a keystone_ui install local, hand that step to it. Otherwise ask the developer how the host loads keystone_ui's styles before continuing.
    - A request with no current account, or from a member who does not hold the members capability in that account, gets a 403 response, whether it loads the page or gives or takes a role. The capability is `manage_members` unless the develop local changes it.
    - Giving or taking a role finds the member only among the current account's members and the role only among the current account's roles, so a member or role from another account raises a not-found error, which Rails answers with a 404 response outside development.
    - Every record the page lists must respond to `name` and `email` and include `Citizen::Member`. If the model from step 6 lacks `name` or `email`, tell the developer before continuing.
@@ -48,6 +50,7 @@ A Rails engine for capability-based authorization in multi-tenant apps, hooked i
 - After step 5, confirm the schema file contains both `citizen_roles` and `citizen_assignments`.
 - After step 10, confirm the host boots with `bin/rails runner 'puts Citizen::Current.account_id.inspect'`, which prints `nil` outside a request.
 - After step 11, confirm `bin/rails routes` lists the mount and, under the routes for `Citizen::Engine`, a `GET` route for `members`, a `POST` route for `members/:member_id/roles`, and a `DELETE` route for `members/:member_id/roles/:id`.
+- After step 11, once the develop local has configured which members the page lists, load the members page as a member who holds the members capability and confirm it shows inside the host's layout with keystone_ui's styles applied.
 - After updating the citizen gem, run `bin/rails citizen:install:migrations` again, then `bin/rails db:migrate`. The task copies only migrations the host does not already have.
 - Declaring capabilities, creating roles and templates, seeding roles for a new account, writing policies, and configuring which members the members page lists and which capability opens it are out of scope for this local. Hand that work to the citizen-develop local.
 - The members page is the only screen citizen adds, and giving or taking a role there is the only role change it offers. Screens for creating, editing and deleting roles belong to the host.
