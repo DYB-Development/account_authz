@@ -68,5 +68,13 @@ module Citizen
 
       assert_equal %w[view_reports], Role.in_account(1).find_by(name: "Pretend Role").capabilities
     end
+
+    test "a member who can manage roles adds a role from a template" do
+      Citizen.templates { template :reporter, capabilities: %w[view_reports] }
+
+      post "/citizen/roles", params: { template: "reporter", signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert Role.in_account(1).exists?(name: "Reporter")
+    end
   end
 end

@@ -7,7 +7,11 @@ module Citizen
     end
 
     def create
-      Role.create!(account_id: Current.account_id, **role_params)
+      if params[:template].present?
+        Role.from_template(account_id: Current.account_id, template: params[:template].to_sym)
+      else
+        Role.create!(account_id: Current.account_id, **role_params)
+      end
 
       redirect_to roles_path
     end
