@@ -194,5 +194,14 @@ module Citizen
 
       assert_not Role.exists?(name: "Pretend Role")
     end
+
+    test "an editor is refused adding a capability they do not hold to a role" do
+      Citizen.catalog { permission :export_data }
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Pretend Role", capabilities: %w[export_data] }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_empty role.reload.capabilities
+    end
   end
 end
