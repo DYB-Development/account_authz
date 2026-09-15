@@ -15,7 +15,7 @@ module Citizen
       manager = ::Member.create!
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
 
-      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
 
       assert_response :success
     end
@@ -24,7 +24,7 @@ module Citizen
       member = ::Member.create!
       member.assign_role(Role.create!(account_id: 1, name: "Viewer", capabilities: []))
 
-      get "/citizen/members", params: { member_id: member.id, account_id: 1 }
+      get "/citizen/members", params: { signed_in_member_id: member.id, account_id: 1 }
 
       assert_response :forbidden
     end
@@ -33,7 +33,7 @@ module Citizen
       manager = ::Member.create!
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
 
-      get "/citizen/members", params: { member_id: manager.id }
+      get "/citizen/members", params: { signed_in_member_id: manager.id }
 
       assert_response :forbidden
     end
@@ -43,7 +43,7 @@ module Citizen
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
       ::Member.create!(account_id: 1, name: "Pretend Person")
 
-      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
 
       assert_includes response.body, "Pretend Person"
     end
@@ -53,7 +53,7 @@ module Citizen
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
       ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
 
-      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
 
       assert_includes response.body, "pretend@example.com"
     end
@@ -64,7 +64,7 @@ module Citizen
       person = ::Member.create!(account_id: 1, name: "Pretend Person")
       person.assign_role(Role.create!(account_id: 1, name: "Pretend Role", capabilities: []))
 
-      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
 
       assert_includes response.body, "Pretend Role"
     end
@@ -74,7 +74,7 @@ module Citizen
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
       manager.assign_role(Role.create!(account_id: 2, name: "Other Account Role", capabilities: []))
 
-      get "/citizen/members", params: { member_id: manager.id, account_id: 1 }
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
 
       assert_not_includes response.body, "Other Account Role"
     end
@@ -85,9 +85,32 @@ module Citizen
       lead = ::Member.create!(account_id: 1, name: "Pretend Lead")
       lead.assign_role(Role.create!(account_id: 1, name: "Lead", capabilities: %w[manage_team]))
 
-      get "/citizen/members", params: { member_id: lead.id, account_id: 1 }
+      get "/citizen/members", params: { signed_in_member_id: lead.id, account_id: 1 }
 
       assert_response :success
+    end
+
+    test "the members page offers to give a member a role they do not hold" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/citizen/members/#{person.id}/roles", role.id.to_s
+    end
+
+    test "the members page offers to take away a role a member holds" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+      person.assign_role(role)
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}/roles/#{role.id}"
     end
   end
 end

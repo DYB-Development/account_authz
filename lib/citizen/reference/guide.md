@@ -80,7 +80,10 @@ scopes per-request resolution.
 
 **Members page (engine).** Mount the engine and a member who holds the members
 capability in the current account sees each member's name, email and roles in
-that account. Anyone else, or a request with no current account, gets 403.
+that account, with a button to give each of the account's roles the member does
+not hold and to take away each one they do. Anyone else, or a request with no
+current account, gets 403. Only the current account's members and roles can be
+given or taken.
 
 ```ruby
 mount Citizen::Engine => "/citizen"   # members page at /citizen/members
@@ -89,7 +92,7 @@ Citizen.members_source = ->(account_id) { Membership.where(account_id: account_i
 Citizen.members_capability = :manage_team   # default :manage_members
 ```
 
-The source returns the account's members; each responds to `name` and `email`
+The source returns the account's members as a relation that responds to `find`; each responds to `name` and `email`
 and includes `Citizen::Member`. Engine controllers inherit the host's
 `ApplicationController`, so the host's sign-in, `current_member` and
 `Citizen::Current.account_id` apply.
