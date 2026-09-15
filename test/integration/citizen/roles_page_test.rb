@@ -217,5 +217,14 @@ module Citizen
 
       assert_not Role.exists?(name: "Pretend Role")
     end
+
+    test "an editor is refused changing a role ranked above their own" do
+      Role.create!(account_id: 1, name: "Owner", rank: 9, capabilities: [])
+      role = Role.create!(account_id: 1, name: "Senior", rank: 4, capabilities: [])
+
+      patch "/citizen/roles/#{role.id}", params: { role: { name: "Renamed" }, signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal "Senior", role.reload.name
+    end
   end
 end
