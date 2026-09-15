@@ -11,6 +11,10 @@ module Citizen
       top_rank? || highest_rank(member) < own_rank
     end
 
+    def includes_role?(role)
+      role.rank < own_rank
+    end
+
     private
 
     def top_rank?
