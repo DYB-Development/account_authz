@@ -23,7 +23,7 @@ module Citizen
     end
 
     def member
-      @member ||= Citizen.members_source.call(Current.account_id).find(params[:member_id])
+      @member ||= Citizen.members_source.members(Current.account_id).find(params[:member_id])
     end
 
     def role
