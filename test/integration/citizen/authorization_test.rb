@@ -15,7 +15,7 @@ module Citizen
       member = ::Member.create!
       member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
 
-      get "/reports", params: { member_id: member.id }
+      get "/reports", params: { member_id: member.id, account_id: 1 }
 
       assert_includes response.body, "revenue: true"
     end
@@ -25,6 +25,15 @@ module Citizen
       member.assign_role(Role.create!(account_id: 2, name: "Sales", capabilities: %w[revenue]))
 
       get "/reports", params: { member_id: member.id, account_id: 1 }
+
+      assert_includes response.body, "revenue: false"
+    end
+
+    test "can? helper denies when no current account is set" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+
+      get "/reports", params: { member_id: member.id }
 
       assert_includes response.body, "revenue: false"
     end

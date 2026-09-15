@@ -10,7 +10,7 @@ module Citizen
     end
 
     def can?(capability)
-      member.can?(capability)
+      Current.account_id.present? && member.can?(capability, account_id: Current.account_id)
     end
   end
 end
