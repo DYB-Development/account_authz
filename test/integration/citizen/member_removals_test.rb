@@ -57,5 +57,13 @@ module Citizen
 
       assert_equal 1, @manager.reload.account_id
     end
+
+    test "a manager refused removing a member ranked at or above them is told why" do
+      @person.assign_role(Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: []))
+
+      delete "/citizen/members/#{@person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "You can only change members ranked below you.", flash[:alert]
+    end
   end
 end

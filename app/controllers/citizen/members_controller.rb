@@ -11,7 +11,8 @@ module Citizen
 
     def destroy
       member = Citizen.members_source.members(Current.account_id).find(params[:id])
-      return head :forbidden unless reach.includes_member?(member) && Citizen.members_source.removable?(member)
+      return refuse(:member_out_of_reach, back_to: members_path) unless reach.includes_member?(member)
+      return head :forbidden unless Citizen.members_source.removable?(member)
       return head :forbidden if LastManager.new(account_id: Current.account_id).lost_by_removing?(member)
 
       ApplicationRecord.transaction do
