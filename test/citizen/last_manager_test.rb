@@ -27,5 +27,12 @@ module Citizen
     test "removing the only member who can manage members loses the last manager" do
       assert LastManager.new(account_id: 1).lost_by_removing?(@manager)
     end
+
+    test "a members role in another account does not count as a manager here" do
+      other_role = Role.create!(account_id: 2, name: "Elsewhere Manager", capabilities: %w[manage_members])
+      ::Member.create!(account_id: 2, name: "Pretend Outsider").assign_role(other_role)
+
+      assert LastManager.new(account_id: 1).lost_by_removing?(@manager)
+    end
   end
 end
