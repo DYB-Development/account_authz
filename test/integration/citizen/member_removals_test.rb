@@ -65,5 +65,13 @@ module Citizen
 
       assert_equal "You can only change members ranked below you.", flash[:alert]
     end
+
+    test "a manager refused removing the account owner is told why" do
+      @person.update!(owner: true)
+
+      delete "/citizen/members/#{@person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "This member can't be removed from the account.", flash[:alert]
+    end
   end
 end
