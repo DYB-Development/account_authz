@@ -88,11 +88,11 @@ given or taken.
 ```ruby
 mount Citizen::Engine => "/citizen"   # members page at /citizen/members
 
-Citizen.members_source = ->(account_id) { Membership.where(account_id: account_id) }
+Citizen.members_source = AccountMembers   # responds to members(account_id)
 Citizen.members_capability = :manage_team   # default :manage_members
 ```
 
-The source returns the account's members as a relation that responds to `find`; each responds to `name` and `email`
+The source's `members(account_id)` returns the account's members as a relation that responds to `find`; each responds to `name` and `email`
 and includes `Citizen::Member`. Engine controllers inherit the host's
 `ApplicationController`, so the host's sign-in, `current_member` and
 `Citizen::Current.account_id` apply. The page renders with keystone_ui inside the
