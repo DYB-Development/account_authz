@@ -12,6 +12,9 @@
         <%= ui_panel do %>
           <%= ui_section(title: invitation.name, subtitle: invitation.email, spacing: :sm) do %>
             <%= ui_badge(label: "Invited", variant: :warning) %>
+            <%= ui_form(action: invitation_path(invitation), method: :delete) do %>
+              <%= ui_button(label: "Cancel", variant: :danger, size: :sm) %>
+            <% end %>
           <% end %>
         <% end %>
       <% end %>
