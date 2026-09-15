@@ -73,5 +73,11 @@ module Citizen
 
       assert_equal "This member can't be removed from the account.", flash[:alert]
     end
+
+    test "the only manager refused removal is told why" do
+      delete "/citizen/members/#{@manager.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
+    end
   end
 end

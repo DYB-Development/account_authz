@@ -13,7 +13,7 @@ module Citizen
       member = Citizen.members_source.members(Current.account_id).find(params[:id])
       return refuse(:member_out_of_reach, back_to: members_path) unless reach.includes_member?(member)
       return refuse(:not_removable, back_to: members_path) unless Citizen.members_source.removable?(member)
-      return head :forbidden if LastManager.new(account_id: Current.account_id).lost_by_removing?(member)
+      return refuse(:last_manager, back_to: members_path) if LastManager.new(account_id: Current.account_id).lost_by_removing?(member)
 
       ApplicationRecord.transaction do
         member.citizen_roles.in_account(Current.account_id).each { |role| member.revoke_role(role) }
