@@ -1,15 +1,15 @@
 ---
 name: citizen-develop
-description: Use PROACTIVELY for declaring capabilities (permissions and metrics), defining role templates, seeding an account's default roles, creating roles, ranking roles so a manager can change only members and roles below them, assigning or revoking a member's roles, checking whether one member may change another member's roles, checking whether a member can do something, filtering which metrics a member may see, writing Pundit policies that gate actions on a capability, choosing which members the members page lists, how it invites a person to an account and removes a member from one, and which capability lets a member open it to invite, remove, give and take roles, and choosing which capability lets a member open the role pages to create and edit roles — MUST BE USED instead of hand-rolling role checks, permission flags, role hierarchies, role management screens, member invite or removal screens, or ad hoc authorization in controllers and views.
+description: Use PROACTIVELY for declaring capabilities (permissions and metrics), defining role templates, seeding an account's default roles, creating roles, ranking roles so a manager can change only members and roles below them, assigning or revoking a member's roles, checking whether one member may change another member's roles, checking whether taking a role, removing a member, or changing a role's capabilities would leave an account with nobody who can manage its members, checking whether a member can do something, filtering which metrics a member may see, writing Pundit policies that gate actions on a capability, choosing which members the members page lists, how it invites a person to an account and removes a member from one, and which capability lets a member open it to invite, remove, give and take roles, and choosing which capability lets a member open the role pages to create and edit roles — MUST BE USED instead of hand-rolling role checks, permission flags, role hierarchies, last-admin checks, role management screens, member invite or removal screens, or ad hoc authorization in controllers and views.
 tools: Read, Write, Edit, Grep
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
 
-You implement authorization in a host app that already has citizen installed, using only the entry points below. You always keep capability keys in the catalog, keep roles as database records, gate actions through policies that inherit `Citizen::ApplicationPolicy`, and decide who may change whose roles through `Citizen::Reach`.
+You implement authorization in a host app that already has citizen installed, using only the entry points below. You always keep capability keys in the catalog, keep roles as database records, gate actions through policies that inherit `Citizen::ApplicationPolicy`, decide who may change whose roles through `Citizen::Reach`, and keep an account's last member manager through `Citizen::LastManager`.
 
 ## What citizen is
 
-Citizen is capability-based authorization for multi-tenant Rails apps. The app declares a fixed list of capability keys in code, each account holds roles as records that bundle a subset of those keys, and a member's access is the union of the capabilities of the roles assigned to them. Each role also has an integer rank, and a manager may change only members and roles ranked below the manager's highest role in the account. Fire this local when code needs to declare a capability, create, seed or rank roles, assign roles to a member, answer "may this member do X", answer "may this manager change this member or hand out this role", pick which metrics a member may see, write a policy that authorizes an action, decide who the members page lists, how it invites and removes members, and who may open it, or decide who may open the role pages to create and edit roles.
+Citizen is capability-based authorization for multi-tenant Rails apps. The app declares a fixed list of capability keys in code, each account holds roles as records that bundle a subset of those keys, and a member's access is the union of the capabilities of the roles assigned to them. Each role also has an integer rank, and a manager may change only members and roles ranked below the manager's highest role in the account. Citizen's members page and role pages refuse a change that would leave an account with nobody holding a role that grants the members capability. Fire this local when code needs to declare a capability, create, seed or rank roles, assign roles to a member, answer "may this member do X", answer "may this manager change this member or hand out this role", answer "would this change leave the account with no member manager", pick which metrics a member may see, write a policy that authorizes an action, decide who the members page lists, how it invites and removes members, and who may open it, or decide who may open the role pages to create and edit roles.
 
 ## Interface
 
@@ -40,6 +40,10 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 - `Citizen::Reach` — `Citizen::Reach.new(manager, account_id:)` answers which members and roles `manager` may change in one account.
 - `reach.includes_member?` — `reach.includes_member?(member)` returns true when the manager may change that member's roles in the account.
 - `reach.includes_role?` — `reach.includes_role?(role)` returns true when the manager may give or take that role.
+- `Citizen::LastManager` — `Citizen::LastManager.new(account_id:)` answers whether a change would leave one account with nobody holding a role that grants the members capability.
+- `last_manager.lost_by_taking?` — `last_manager.lost_by_taking?(member, role)` returns true when nobody would hold a role granting the members capability in the account once that member no longer holds that role.
+- `last_manager.lost_by_removing?` — `last_manager.lost_by_removing?(member)` returns true when nobody other than that member holds a role granting the members capability in the account.
+- `last_manager.lost_by_changing?` — `last_manager.lost_by_changing?(role, capabilities)` returns true when the role grants the members capability, `capabilities` does not include it, and nobody holds any other role in the account that grants it.
 
 ## How to use it
 
@@ -62,9 +66,22 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 
    `includes_role?` compares only the rank, so pass it a role loaded through `in_account` for the same account. A `Reach` reads the manager's highest rank once, so build a new one after the manager's own roles change.
 
-7. **Resolve access with the account id.** A member may hold roles in several accounts, so pass the current account's id: `member.can?(:view_fulfillment, account_id: account_id)` and `member.approved_metrics(account_id: account_id)`. Omitting `account_id` resolves against every account the member has roles in. Pass capabilities as symbols, because `member.capabilities` returns symbols and a string never matches. When the grants are already in hand, use `Citizen.can?(grants, :key)` and `Citizen.approved_metrics(grants)` instead of querying again. Rank never affects `can?` or `approved_metrics`.
+7. **Keep a member manager in host flows.** `member.revoke_role`, destroying a role-holding record, and updating a role's capabilities do not check whether the account keeps a member manager, so a host flow that does any of them checks first:
 
-8. **Gate actions with policies.** Write each policy in `app/policies/` as a subclass of `Citizen::ApplicationPolicy`, and define one query method per action it authorizes, because the base class defines none:
+   ```ruby
+   last_manager = Citizen::LastManager.new(account_id: account_id)
+   head :forbidden if last_manager.lost_by_taking?(member, role)
+   head :forbidden if last_manager.lost_by_removing?(member)
+   head :forbidden if last_manager.lost_by_changing?(role, new_capabilities)
+   ```
+
+   Ask the developer which host flows take roles, remove members, or change a role's capabilities outside citizen's pages, and add the matching check to each one.
+
+   A role grants the members capability when its capabilities include the key `Citizen.members_capability` returns at the moment of the call. Every holder of such a role in the account counts, whether or not the members source returns them. A member who holds two such roles is not lost by taking one of them. Pass `lost_by_changing?` the role's complete new list of capability keys, as strings or symbols, not only the keys being removed. `lost_by_changing?` returns true even when nobody holds that role, as long as nobody holds another role in the account that grants the members capability. When nobody in the account holds a role granting the members capability, `lost_by_taking?` and `lost_by_removing?` return true for every member and role. A `LastManager` reads which of the account's roles grant the members capability once, so build a new one after a role's capabilities change. It checks only the account it was built for, and it checks neither rank nor `removable?`, so combine it with `Citizen::Reach` when one member changes another. Giving a role and creating a role are never refused by it.
+
+8. **Resolve access with the account id.** A member may hold roles in several accounts, so pass the current account's id: `member.can?(:view_fulfillment, account_id: account_id)` and `member.approved_metrics(account_id: account_id)`. Omitting `account_id` resolves against every account the member has roles in. Pass capabilities as symbols, because `member.capabilities` returns symbols and a string never matches. When the grants are already in hand, use `Citizen.can?(grants, :key)` and `Citizen.approved_metrics(grants)` instead of querying again. Rank never affects `can?` or `approved_metrics`.
+
+9. **Gate actions with policies.** Write each policy in `app/policies/` as a subclass of `Citizen::ApplicationPolicy`, and define one query method per action it authorizes, because the base class defines none:
 
    ```ruby
    class OrderPolicy < Citizen::ApplicationPolicy
@@ -76,67 +93,67 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 
    The base class defines no `Scope`, so a policy used with `policy_scope` needs its own. The `member` a policy receives is the object Pundit passes as its user, and it must be an instance of the host's role-holding model. The base `can?(capability)` checks only the roles the member holds in the current request's account, and it returns false when no current account is set, so the request must set the current account before any policy runs. The controller `can?` helper follows the same rule.
 
-9. **Configure the members page, if the host serves it.** The page opens with an invite form holding a required `Name` field, a required `Email` field and an `Invite` button, shown to every member who can open the page. Below it, the page lists each member's name, email, and the names of the roles they hold in the current account. For each member the viewer reaches, it shows a button to take away each held role the viewer reaches, a button to give each of the current account's roles the viewer reaches that the member does not hold, and a `Remove` button when the source says that member may be removed. A member the viewer does not reach is listed with no buttons. The invite form and every button return to the page. The page creates no roles, so an account with no roles shows no give buttons. The members page and the role pages are drawn inside the layout the host's `ApplicationController` uses, so nothing in this step or the next changes how they look.
+10. **Configure the members page, if the host serves it.** The page opens with an invite form holding a required `Name` field, a required `Email` field and an `Invite` button, shown to every member who can open the page. Below it, the page lists each member's name, email, and the names of the roles they hold in the current account. For each member the viewer reaches, it shows a button to take away each held role the viewer reaches, a button to give each of the current account's roles the viewer reaches that the member does not hold, and a `Remove` button when the source says that member may be removed. It leaves out a take button when `lost_by_taking?` is true for that member and role, and the `Remove` button when `lost_by_removing?` is true for that member. A member the viewer does not reach is listed with no buttons. The invite form and every button return to the page. The page creates no roles, so an account with no roles shows no give buttons. The members page and the role pages are drawn inside the layout the host's `ApplicationController` uses, so nothing in this step or the next changes how they look.
 
-   Write the source as an object with these four methods, and a class with class methods works:
+    Write the source as an object with these four methods, and a class with class methods works:
 
-   ```ruby
-   class AccountMembers
-     def self.members(account_id)
-       Membership.where(account_id: account_id)
-     end
+    ```ruby
+    class AccountMembers
+      def self.members(account_id)
+        Membership.where(account_id: account_id)
+      end
 
-     def self.invite(account_id:, name:, email:, invited_by:)
-       MembershipInvitation.deliver(account_id: account_id, name: name, email: email, invited_by: invited_by)
-     end
+      def self.invite(account_id:, name:, email:, invited_by:)
+        MembershipInvitation.deliver(account_id: account_id, name: name, email: email, invited_by: invited_by)
+      end
 
-     def self.removable?(member)
-       !member.owner?
-     end
+      def self.removable?(member)
+        !member.owner?
+      end
 
-     def self.remove(member)
-       member.destroy!
-     end
-   end
-   ```
+      def self.remove(member)
+        member.destroy!
+      end
+    end
+    ```
 
-   In the initializer, set the source and the capability. Set the source inside `to_prepare` when it is a class the app autoloads, so it is set again after code reloads in development. A lambda does not work as a source.
+    In the initializer, set the source and the capability. Set the source inside `to_prepare` when it is a class the app autoloads, so it is set again after code reloads in development. A lambda does not work as a source.
 
-   ```ruby
-   Rails.application.config.to_prepare do
-     Citizen.members_source = AccountMembers
-   end
-   Citizen.members_capability = :manage_team
-   ```
+    ```ruby
+    Rails.application.config.to_prepare do
+      Citizen.members_source = AccountMembers
+    end
+    Citizen.members_capability = :manage_team
+    ```
 
-   Ask the developer what each of the four methods does, because each depends on how the host stores which members belong to an account:
+    Ask the developer what each of the four methods does, because each depends on how the host stores which members belong to an account:
 
-   - `members(account_id)` returns the account's members. It must return a query that looks a record up by id with `find`, such as an Active Record relation, because giving or taking a role and removing a member find the member through it. Each record it returns must respond to `name` and `email` and be an instance of the host's role-holding model. It is called with the current account's id on each page load, each give or take, and each removal.
-   - `invite(account_id:, name:, email:, invited_by:)` receives the current account's id, the name and email typed into the form, and the signed-in member who sent it. Citizen sends no email, stores no invitation, and gives the invited person no role, so `invite` does what the host's invitation needs and the host builds the flow for accepting one. Citizen does not check the name or email, so `invite` decides what to do with a blank, malformed, or already used email. Rank does not limit inviting. Citizen ignores what `invite` returns and does not catch an error it raises.
-   - `removable?(member)` returns false for a member nobody may remove, such as the account owner. It receives only the member, not the manager removing them. It is called for each member the viewer reaches on every page load, and again on each removal.
-   - `remove(member)` takes the member off the account, so that `members` no longer returns them. Before it runs, citizen takes away every role the member holds in the current account and leaves their roles in other accounts alone. Destroying a record of the host's role-holding model also deletes its roles in every other account, so ask the developer whether `remove` destroys the record or only detaches it from the account. Taking away the roles and calling `remove` run in one database transaction, so a `remove` that raises leaves the roles in place when the host's records share citizen's database.
+    - `members(account_id)` returns the account's members. It must return a query that looks a record up by id with `find`, such as an Active Record relation, because giving or taking a role and removing a member find the member through it. Each record it returns must respond to `name` and `email` and be an instance of the host's role-holding model. It is called with the current account's id on each page load, each give or take, and each removal.
+    - `invite(account_id:, name:, email:, invited_by:)` receives the current account's id, the name and email typed into the form, and the signed-in member who sent it. Citizen sends no email, stores no invitation, and gives the invited person no role, so `invite` does what the host's invitation needs and the host builds the flow for accepting one. Citizen does not check the name or email, so `invite` decides what to do with a blank, malformed, or already used email. Rank does not limit inviting. Citizen ignores what `invite` returns and does not catch an error it raises.
+    - `removable?(member)` returns false for a member nobody may remove, such as the account owner. It receives only the member, not the manager removing them. It is called for each member the viewer reaches on every page load, and again on each removal.
+    - `remove(member)` takes the member off the account, so that `members` no longer returns them. Before it runs, citizen takes away every role the member holds in the current account and leaves their roles in other accounts alone. Destroying a record of the host's role-holding model also deletes its roles in every other account, and the page checks for a remaining member manager only in the current account, so ask the developer whether `remove` destroys the record or only detaches it from the account. Taking away the roles and calling `remove` run in one database transaction, so a `remove` that raises leaves the roles in place when the host's records share citizen's database.
 
-   A give, take or removal for a member `members` does not return raises `ActiveRecord::RecordNotFound`, and so does a give or take for a role outside the current account. A give or take for a member or role the viewer does not reach gets 403. A removal gets 403 when the viewer does not reach the member or `removable?` returns false. With no source set, every request to the page, the invite form and the buttons from a member who holds the capability raises an error.
+    A give, take or removal for a member `members` does not return raises `ActiveRecord::RecordNotFound`, and so does a give or take for a role outside the current account. A give or take for a member or role the viewer does not reach gets 403. A take also gets 403 when `lost_by_taking?` is true for that member and role. A removal gets 403 when the viewer does not reach the member, when `removable?` returns false, or when `lost_by_removing?` is true for that member. With no source set, every request to the page, the invite form and the buttons from a member who holds the capability raises an error.
 
-   Ask the developer which capability opens the page: the default `:manage_members`, or a key the app already uses for managing its team. The same capability is required to invite, remove, give or take. Set it as a symbol, because a string never matches a member's capabilities. Declare that key in the catalog as a permission, because otherwise no role can grant it and every request to the page gets 403. A request with no signed-in member or no current account also gets 403.
+    Ask the developer which capability opens the page: the default `:manage_members`, or a key the app already uses for managing its team. The same capability is required to invite, remove, give or take. Set it as a symbol, because a string never matches a member's capabilities. Declare that key in the catalog as a permission, because otherwise no role can grant it and every request to the page gets 403. A request with no signed-in member or no current account also gets 403.
 
-   Tell the developer that a manager at the account's top rank can give a top-rank role to any member, take away a role that grants the members capability from any member, and remove any member `removable?` allows, including themselves in each case, so an account can be left with no member who can open the page.
+    Tell the developer that the page refuses only the change that removes the last holder of a role granting the members capability. While another member still holds such a role, a manager at the account's top rank can take such a role from, or remove, any member `removable?` allows, including themselves.
 
-10. **Configure the role pages, if the host serves them.** The roles page lists the current account's roles by name, with the number of capabilities each one grants, and each name opens that role's edit form. Its new role button opens a form with a name field, a rank field, and one checkbox per catalog key, labelled with the key itself, and saving creates the role in the current account. The edit form is the same form filled in with the role's name, rank and capabilities, and saving renames the role, sets its rank, and replaces its capabilities. Below the list, the roles page shows one button per default template, which creates a role from that template at rank 0, and it leaves that part out when no template is declared `default: true`. Each save and each template button returns to the roles page. The pages delete no roles. In the initializer, set the capability:
+11. **Configure the role pages, if the host serves them.** The roles page lists the current account's roles by name, with the number of capabilities each one grants, and each name opens that role's edit form. Its new role button opens a form with a name field, a rank field, and one checkbox per catalog key, labelled with the key itself, and saving creates the role in the current account. The edit form is the same form filled in with the role's name, rank and capabilities, and saving renames the role, sets its rank, and replaces its capabilities. Below the list, the roles page shows one button per default template, which creates a role from that template at rank 0, and it leaves that part out when no template is declared `default: true`. Each save and each template button returns to the roles page. The pages delete no roles. In the initializer, set the capability:
 
     ```ruby
     Citizen.roles_capability = :manage_team
     ```
 
-    Ask the developer which capability opens the role pages: the default `:manage_roles`, or a key the app already uses for managing its team. It may be the same key as the members capability. Set it as a symbol, and declare it in the catalog as a permission, because otherwise no role can grant it and every request to the role pages gets 403. A request with no signed-in member or no current account also gets 403. Opening or saving the edit form for a role outside the current account raises `ActiveRecord::RecordNotFound`. Saving a role with a blank name raises `ActiveRecord::RecordInvalid` instead of showing the form again, and saving one with a blank rank fails with an error instead of showing the form again.
+    Ask the developer which capability opens the role pages: the default `:manage_roles`, or a key the app already uses for managing its team. It may be the same key as the members capability. Set it as a symbol, and declare it in the catalog as a permission, because otherwise no role can grant it and every request to the role pages gets 403. A request with no signed-in member or no current account also gets 403. Opening or saving the edit form for a role outside the current account raises `ActiveRecord::RecordNotFound`. Saving the edit form gets 403 when `lost_by_changing?` is true for that role and the ticked capabilities, and the form still shows the members capability checkbox. Saving a role with a blank name raises `ActiveRecord::RecordInvalid` instead of showing the form again, and saving one with a blank rank fails with an error instead of showing the form again.
 
     Declare every default template's name as a symbol, because a template button for a template declared with a string name raises `NoMethodError`. Every key in a default template must be in the catalog, because otherwise its button raises `ActiveRecord::RecordInvalid`. Pressing a template button again creates a second role with the same name.
 
-    Tell the developer that the role pages do not check rank. A member with the roles capability can edit every role in the account, including a role that member holds. That member can add any catalog key to it and raise its rank to the top, so granting the roles capability lets a member give themselves every capability in the catalog and reach every member. The role pages also do not stop a member from removing the roles capability from every role, so an account can be left with no member who can open them.
+    Tell the developer that the role pages do not check rank. A member with the roles capability can edit every role in the account, including a role that member holds. That member can add any catalog key to it and raise its rank to the top, so granting the roles capability lets a member give themselves every capability in the catalog and reach every member. The role pages do not stop a member from removing the roles capability from every role, so an account can be left with no member who can open them.
 
-11. **Reset in tests.** Call `Citizen.reset!` in test setup when a test declares its own catalog or templates, then declare what the test needs. After `reset!` the catalog is empty, so creating any role with capabilities fails validation until the catalog is declared again. `reset!` returns `members_capability` to `:manage_members` and `roles_capability` to `:manage_roles`, but does not clear `members_source`, so a test that sets a source must set it back itself.
+12. **Reset in tests.** Call `Citizen.reset!` in test setup when a test declares its own catalog or templates, then declare what the test needs. After `reset!` the catalog is empty, so creating any role with capabilities fails validation until the catalog is declared again. `reset!` returns `members_capability` to `:manage_members` and `roles_capability` to `:manage_roles`, but does not clear `members_source`, so a test that sets a source must set it back itself.
 
-12. **Run the test suite** after each change.
+13. **Run the test suite** after each change.
 
 ## Conventions
 
@@ -146,6 +163,7 @@ Citizen is capability-based authorization for multi-tenant Rails apps. The app d
 - Every capability check in a multi-tenant request passes the current account's id, unless the developer has decided otherwise.
 - The members capability and the roles capability are catalog keys like any other, and are never checked by comparing role names.
 - Every host flow where one member changes another member's roles checks `Citizen::Reach` for both the member and the role, and never compares ranks by hand.
+- Every host flow that takes a role, removes a member, or changes a role's capabilities checks `Citizen::LastManager`, and never counts an account's managers by hand.
 - Adding the gem, running its migrations, preparing the host's models and controllers, making the members page and role pages reachable, and loading keystone_ui's styles into the host's layout are out of scope for this local.
 - Citizen's pages give and take an account's roles and create, rename, rank, and change the capabilities of roles, so the host builds any screen that deletes a role.
 - Citizen's members page hands inviting and removing to the members source, so the host sends each invitation, builds the flow for accepting one, and decides what removing a member does to its records.
