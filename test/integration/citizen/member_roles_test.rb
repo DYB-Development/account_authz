@@ -26,5 +26,13 @@ module Citizen
 
       assert_empty @person.citizen_roles
     end
+
+    test "a manager cannot give a member a role from another account" do
+      other_role = Role.create!(account_id: 2, name: "Other Account Role", capabilities: [])
+
+      post "/citizen/members/#{@person.id}/roles", params: { role_id: other_role.id, signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_empty @person.citizen_roles
+    end
   end
 end
