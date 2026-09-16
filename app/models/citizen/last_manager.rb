@@ -7,21 +7,29 @@ module Citizen
     end
 
     def lost_by_taking?(member, role)
-      managing_assignments.where.not(member: member, role: role).none?
+      managing_assignments.none? { |assignment| !holds?(assignment, member, role) }
     end
 
     def lost_by_removing?(member)
-      managing_assignments.where.not(member: member).none?
+      managing_assignments.none? { |assignment| !held_by?(assignment, member) }
     end
 
     def lost_by_changing?(role, capabilities)
-      managing_role_ids.include?(role.id) && !grants_members_capability?(capabilities) && managing_assignments.where.not(role: role).none?
+      managing_role_ids.include?(role.id) && !grants_members_capability?(capabilities) && managing_assignments.none? { |assignment| assignment.role_id != role.id }
     end
 
     private
 
     def managing_assignments
-      Assignment.where(role_id: managing_role_ids)
+      @managing_assignments ||= Assignment.where(role_id: managing_role_ids).to_a
+    end
+
+    def holds?(assignment, member, role)
+      held_by?(assignment, member) && assignment.role_id == role.id
+    end
+
+    def held_by?(assignment, member)
+      assignment.member_id == member.id && assignment.member_type == member.class.polymorphic_name
     end
 
     def managing_role_ids

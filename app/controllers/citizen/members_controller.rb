@@ -4,6 +4,7 @@ module Citizen
 
     def index
       @members = Citizen.members_source.members(Current.account_id)
+      @held_roles = held_roles
       @invitations = Citizen.members_source.invitations(Current.account_id)
       @reach = reach
       @last_manager = LastManager.new(account_id: Current.account_id)
@@ -25,6 +26,11 @@ module Citizen
     end
 
     private
+
+    def held_roles
+      Assignment.where(member: @members.to_a, role: Role.in_account(Current.account_id)).includes(:role)
+        .group_by(&:member_id).transform_values { |assignments| assignments.map(&:role) }
+    end
 
     def reach
       @reach ||= Reach.new(current_member, account_id: Current.account_id)
