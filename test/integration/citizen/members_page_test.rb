@@ -252,5 +252,15 @@ module Citizen
 
       assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/invitations/#{invitation.id}"
     end
+
+    test "the members page offers to send an invitation again" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      invitation = ::Invitation.create!(account_id: 1, name: "Pretend Guest", email: "guest@example.com")
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action=?][method=post]", "/citizen/invitations/#{invitation.id}/resend"
+    end
   end
 end
