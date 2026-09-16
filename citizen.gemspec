@@ -13,7 +13,7 @@ Gem::Specification.new do |spec|
     "fixed catalog of capabilities (permission + metric keys) in code; accounts manage roles as data " \
     "that bundle those capabilities; Citizen resolves what a member may do (can?) and which metrics " \
     "they may see (approved_metrics) from their roles, and plugs into Pundit for enforcement."
-  spec.homepage = "https://github.com/tylercschneider/citizen"
+  spec.homepage = "https://github.com/DYB-Development/citizen"
   spec.license = "MIT"
   spec.required_ruby_version = ">= 3.2.0"
 

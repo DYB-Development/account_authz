@@ -37,7 +37,7 @@ Citizen.approved_metrics(grants)          # => [:revenue, :deals]
 ## Installation
 
 ```ruby
-gem "citizen", github: "tylercschneider/citizen", branch: "main"
+gem "citizen", github: "DYB-Development/citizen", branch: "main"
 ```
 
 ## License
