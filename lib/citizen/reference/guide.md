@@ -185,7 +185,7 @@ plain `gem install`:
 
 1. Add the gem (git source until it is on RubyGems), then `bundle install`:
    ```ruby
-   gem "citizen", github: "tylercschneider/citizen", branch: "main"
+   gem "citizen", github: "DYB-Development/citizen", branch: "main"
    ```
 2. Install and run the engine's migrations — this creates the `citizen_roles`
    and `citizen_assignments` tables:

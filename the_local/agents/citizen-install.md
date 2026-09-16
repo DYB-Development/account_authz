@@ -22,7 +22,7 @@ A Rails engine for capability-based authorization in multi-tenant apps, hooked i
 1. Confirm the host runs Ruby 3.2 or later and Rails 7.1 or later.
 2. Ask the developer which source to install citizen from.
    - RubyGems: `gem "citizen"`
-   - Git: `gem "citizen", github: "tylercschneider/citizen", branch: "main"`
+   - Git: `gem "citizen", github: "DYB-Development/citizen", branch: "main"`
 
    Add the chosen line to `Gemfile`, then run `bundle install`. This updates `Gemfile.lock`.
 3. Run `bin/rails citizen:install:migrations`. It copies three files into `db/migrate/`, named `<timestamp>_create_citizen_roles.citizen.rb`, `<timestamp>_create_citizen_assignments.citizen.rb` and `<timestamp>_add_rank_to_citizen_roles.citizen.rb`.
