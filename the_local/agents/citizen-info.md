@@ -1,6 +1,6 @@
 ---
 name: citizen-info
-description: Use to learn what citizen offers — capability-based authorization for multi-tenant Rails apps, with a capability catalog, account roles, role templates, role ranks that limit who may manage whom, limits on which roles an editor may create or change, a rule that every account keeps a member manager, pages for managing roles and for inviting, removing, and giving and taking roles from members, messages that tell a manager why a change was refused, and Pundit enforcement.
+description: Use to learn what citizen offers — its capability catalog, account roles and ranks, reach limits on who may manage whom, the rule that every account keeps a member manager, the members and role pages with their invitations and refusal messages, and Pundit enforcement.
 tools: Read
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -21,18 +21,22 @@ account with nobody able to manage its members.
 Reach for it when the set of gated actions is decided by the developers but the
 bundling of those actions into roles is decided by each account. It is a Rails
 engine that stores roles and role assignments in its own tables, and it enforces
-through Pundit. It ships two sets of pages, drawn with keystone_ui inside the
-host's own layout. The role pages let a manager list, create and edit the
-account's roles, including each role's rank, limited to capabilities the manager
-holds, ranks up to their own, and roles ranked below them. The members page lets
-a manager invite a person, remove a member, and give a member a role or take one
-away, with removing and role changes limited to the members and roles ranked
-below the manager. The members page links to the role pages and the role pages
-link back, so the host's navigation needs one link to reach both. Both sets of pages refuse any change that would leave the
-account with no member able to manage members, and tell the manager why a change
-was refused. The host app signs people in, sets which account a request belongs
-to, and supplies the members the members page lists, sends the invitations, and
-carries out the removals.
+through Pundit.
+
+It ships two sets of pages, drawn with keystone_ui inside the host's own layout.
+The role pages let a manager list, create and edit the account's roles, including
+each role's rank, limited to capabilities the manager holds, ranks up to their
+own, and roles ranked below them. The members page lets a manager invite a
+person, remove a member, and give a member a role or take one away, with removing
+and role changes limited to the members and roles ranked below the manager. It
+also lists the invitations still waiting for an answer, each with a button to
+send it again and one to cancel it. The members page links to the role pages and
+the role pages link back, so the host's navigation needs one link to reach both.
+Both sets of pages refuse any change that would leave the account with no member
+able to manage members, and tell the manager why a change was refused. The host
+app signs people in, sets which account a request belongs to, supplies the
+members and the waiting invitations the members page lists, sends the
+invitations, sends them again, cancels them, and carries out the removals.
 
 ## Interface
 
@@ -43,12 +47,15 @@ two locals:
   migrations, connecting the host's member model and controllers, setting the
   per-request account, and mounting the engine.
 - **citizen-develop** owns everything written against citizen after that:
-  declaring the catalog, defining and seeding roles, assigning roles to members,
-  checking capabilities, asking whether a manager's rank reaches a member or a
-  role, asking whether an editor may put a set of capabilities or a rank on a
-  role, asking whether a change would remove the account's last member manager,
-  writing policies, configuring the members page, including how it invites and
-  removes, and the role pages, and rewording the refusal messages.
+  - declaring the catalog, defining roles and templates, seeding them, and
+    assigning roles to members;
+  - checking capabilities and approved metrics, and writing policies;
+  - asking whether a manager's rank reaches a member or a role, whether an editor
+    may put a set of capabilities or a rank on a role, and whether a change would
+    remove the account's last member manager;
+  - configuring the members page, including how it invites, lists the waiting
+    invitations, sends one again, cancels one and removes, and the role pages;
+  - rewording the refusal messages.
 
 ## How to use it
 
@@ -57,12 +64,14 @@ Decide which of the two you need, then go there.
 - Citizen is not yet in the app, a model or controller is not yet connected to
   it, the engine is not yet mounted, or the migration that adds ranks has not
   been installed after an update: use **citizen-install**.
-- Citizen is connected and you are adding a capability, a role, a template, a
-  check on an action, a check on who may manage whom in the host's own screens,
-  a check on which capabilities and ranks an editor may set in the host's own
-  screens, a check that the host's own screens keep a member manager, setting up
-  the members page, its invitations and removals, or the role pages, or changing
-  the wording of a refusal message: use **citizen-develop**.
+- Citizen is connected and you are adding a capability, a role, a template, or a
+  check on an action: use **citizen-develop**.
+- Citizen is connected and you are setting up the members page, its invitations
+  and removals, or the role pages: use **citizen-develop**.
+- Citizen is connected and you are adding a check in the host's own screens on
+  who may manage whom, on which capabilities and ranks an editor may set, or on
+  keeping a member manager, or changing the wording of a refusal message: use
+  **citizen-develop**.
 
 ## Conventions
 
@@ -118,9 +127,10 @@ Decide which of the two you need, then go there.
   shows every role's name and how many capabilities it holds, and each name
   opens that role's edit form. Above the list is a Members link back to the
   members page, shown to every viewer, and a viewer without the members
-  capability who follows it gets a forbidden response. The new and edit forms take a name, a rank of 0
-  or more, and a checkbox for every capability in the catalog. Saving is limited
-  by the editor limits and by the last member manager rule.
+  capability who follows it gets a forbidden response. The new and edit forms
+  take a name, a rank of 0 or more, and a checkbox for every capability in the
+  catalog. Saving is limited by the editor limits and by the last member manager
+  rule.
 - **Editor limits** — the changes the role pages refuse from a person who may
   open them. Creating a role is refused when it sets a rank above the editor's
   highest role, or includes a capability the editor does not hold. Saving an
@@ -139,14 +149,15 @@ Decide which of the two you need, then go there.
   the button does not check whether the account already has a role of that name.
 - **Members page** — the engine's page for the current account's members. It
   lists each member's name, email and the roles they hold in that account only,
-  under a form for inviting a person. Beside the page title is a Roles link to
-  the role pages, shown only to a viewer who holds the roles capability in the
-  current account. Beside each member the viewer reaches is a
-  Give button for every role within reach the member does not hold, and a Take
-  button for every role within reach they do. It also shows a Remove button when
-  the host says that member may be removed. A Take or Remove button that would
-  break the last member manager rule is not shown. A member outside the viewer's
-  reach shows no buttons.
+  under a form for inviting a person. Between that form and the members it lists
+  the account's invitations still waiting. Beside the page title is a Roles link
+  to the role pages, shown only to a viewer who holds the roles capability in the
+  current account. Beside each member the viewer reaches is a Give button for
+  every role within reach the member does not hold, and a Take button for every
+  role within reach they do. It also shows a Remove button when the host says
+  that member may be removed. A Take or Remove button that would break the last
+  member manager rule is not shown. A member outside the viewer's reach shows no
+  buttons.
 - **Giving and taking** — assigning a role to a member, or removing one, from the
   members page. Only members and roles of the current account, and within the
   viewer's reach, can be given or taken, and either action returns to the
@@ -156,6 +167,12 @@ Decide which of the two you need, then go there.
   and the inviting member to the host. The host sends its own invitation and
   decides when the person becomes a member. Rank does not limit inviting, and the
   action returns to the members page.
+- **Waiting invitation** — an invitation the host says is still waiting for an
+  answer. Each one shows the name and email it was sent to, an Invited badge, a
+  Send again button and a Cancel button. Sending again asks the host to send that
+  invitation once more, and cancelling asks the host to withdraw it. Only the
+  current account's waiting invitations can be sent again or cancelled, rank does
+  not limit either, and both actions return to the members page.
 - **Removing** — taking a member off the current account from the members page.
   Citizen first takes away every role the member holds in the current account,
   then asks the host to remove the member, both in one database transaction.
@@ -169,16 +186,18 @@ Decide which of the two you need, then go there.
   keystone_ui's styles. Links in that layout to the host's own pages work on the
   engine pages without change.
 - **Members source** — what the host supplies for the members page. It lists
-  which members belong to an account, sends an invitation, says whether a member
-  may be removed, and removes a member.
+  which members belong to an account, sends an invitation, lists the invitations
+  still waiting, sends one again, cancels one, says whether a member may be
+  removed, and removes a member.
 - **Members capability** — the capability a person needs to open the members
-  page and to invite, remove, give or take roles there, `manage_members` unless
-  the app names another.
+  page and to invite, send an invitation again, cancel one, remove, give or take
+  roles there, `manage_members` unless the app names another.
 - **Roles capability** — the capability a person needs to open the role pages and
   to create or change roles there, `manage_roles` unless the app names another.
 - **Forbidden** — a person without the page's capability, or a request with no
   current account, gets a forbidden response from any engine page. Another
-  account's roles and members cannot be read or changed from these pages.
+  account's roles, members and waiting invitations cannot be read or changed from
+  these pages.
 - **Refusal message** — what a manager sees when they may use the page but not
   make a particular change. Citizen changes nothing and sends them back with a
   flash alert saying why. Seven reasons have a message: a role outside the

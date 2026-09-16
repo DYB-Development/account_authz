@@ -52,6 +52,7 @@ sources:
   - config/routes.rb
   - app/controllers/citizen/members_controller.rb
   - app/controllers/citizen/invitations_controller.rb
+  - test/dummy/app/models/member_directory.rb
   - app/controllers/citizen/member_roles_controller.rb
   - app/views/citizen/members/index.html.erb
   - app/controllers/citizen/roles_controller.rb

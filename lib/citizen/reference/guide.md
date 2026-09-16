@@ -81,8 +81,9 @@ scopes per-request resolution.
 **Members page (engine).** Mount the engine and a member who holds the members
 capability in the current account sees each member's name, email and roles in
 that account, with a button to give each of the account's roles the member does
-not hold and to take away each one they do. The page also invites a person by
-name and email, and removes a member from the account, which first takes away
+not hold and to take away each one they do. It lists the account's invitations
+still waiting for an answer, each with a button to send it again and one to
+cancel it. The page also invites a person by name and email, and removes a member from the account, which first takes away
 every role they held in it. Anyone else, or a request with no current account,
 gets 403. Only the current account's members and roles can be changed.
 
@@ -95,12 +96,15 @@ Citizen.members_capability = :manage_team   # default :manage_members
 class AccountMembers
   def self.members(account_id) = Membership.where(account_id: account_id)
   def self.invite(account_id:, name:, email:, invited_by:) = Invitation.send_to(account_id, name, email, invited_by)
+  def self.invitations(account_id) = Invitation.where(account_id: account_id)
+  def self.resend_invitation(invitation) = invitation.send_again
+  def self.cancel_invitation(invitation) = invitation.destroy!
   def self.removable?(member) = !member.owner?
   def self.remove(member) = member.destroy!
 end
 ```
 
-The source's `members(account_id)` returns the account's members as a relation that responds to `find`, `invite` sends the app's own invitation, `removable?` says whether a member may be removed at all (such as the account owner), and `remove` takes the member off the account; each responds to `name` and `email`
+The source's `members(account_id)` returns the account's members as a relation that responds to `find`, `invite` sends the app's own invitation, `invitations(account_id)` returns the ones still waiting as a relation that responds to `find`, `resend_invitation` sends one again, `cancel_invitation` withdraws one, `removable?` says whether a member may be removed at all (such as the account owner), and `remove` takes the member off the account; each responds to `name` and `email`
 and includes `Citizen::Member`. Engine controllers inherit the host's
 `ApplicationController`, so the host's sign-in, `current_member` and
 `Citizen::Current.account_id` apply. The page renders with keystone_ui inside the

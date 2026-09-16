@@ -6,7 +6,19 @@ class MemberDirectory
   end
 
   def self.invite(account_id:, name:, email:, invited_by:)
-    Member.create!(account_id: account_id, name: name, email: email)
+    Invitation.create!(account_id: account_id, name: name, email: email)
+  end
+
+  def self.invitations(account_id)
+    Invitation.where(account_id: account_id)
+  end
+
+  def self.resend_invitation(invitation)
+    invitation.update!(sent_count: invitation.sent_count + 1)
+  end
+
+  def self.cancel_invitation(invitation)
+    invitation.destroy!
   end
 
   def self.removable?(member)

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_16_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_16_120002) do
   create_table "citizen_assignments", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "member_id", null: false
@@ -30,6 +30,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_16_000002) do
     t.integer "rank", default: 0, null: false
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_citizen_roles_on_account_id"
+  end
+
+  create_table "invitations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "name", null: false
+    t.integer "sent_count", default: 1, null: false
+    t.datetime "updated_at", null: false
   end
 
   create_table "members", force: :cascade do |t|
