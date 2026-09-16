@@ -59,8 +59,12 @@ Citizen.templates.defaults              # => templates flagged default: true
 Citizen.seed_default_roles(account_id)  # one role per default template (idempotent)
 ```
 
-**Members.** Include `Citizen::Member` in the model that holds roles (User,
-Membership, …). `account_id:` scopes resolution to one account (nil = all roles):
+**Members.** Include `Citizen::Member` in the record that represents a person
+*inside one account* — an account membership, not the person. A role belongs to
+one account, so holding it on the membership means it can only apply where the
+person belongs and it goes when the membership goes. Where an app has no such
+record, the person can hold roles and every check passes `account_id:`, which
+scopes resolution to one account (nil = all roles):
 
 ```ruby
 member.assign_role(role)
@@ -209,6 +213,9 @@ sets the current account, and supplies the members the members page lists.
 
 ### Citizen conventions
 
+- **A member is a person inside one account.** Include `Citizen::Member` in the
+  membership record rather than the person, so roles cannot outlive the
+  membership or reach an account the person never joined.
 - **Capabilities are code, roles are data.** Define capability keys only in the
   catalog; never persist capability *definitions* as data, and never hardcode
   role *records* in code (seed them from templates instead).

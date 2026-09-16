@@ -1,6 +1,6 @@
 ---
 name: citizen-info
-description: Use to learn what citizen offers — its capability catalog, account roles and ranks, reach limits on who may manage whom, the rule that every account keeps a member manager, the members and role pages with their invitations and refusal messages, and Pundit enforcement.
+description: Use to learn what citizen offers — its capability catalog, account roles and ranks, members as account memberships, reach limits on who may manage whom, the rule that every account keeps a member manager, the members and role pages with their invitations and refusal messages, and Pundit enforcement.
 tools: Read
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -64,6 +64,8 @@ Decide which of the two you need, then go there.
 - Citizen is not yet in the app, a model or controller is not yet connected to
   it, the engine is not yet mounted, or the migration that adds ranks has not
   been installed after an update: use **citizen-install**.
+- You are choosing which of the host's models holds roles: use
+  **citizen-install**.
 - Citizen is connected and you are adding a capability, a role, a template, or a
   check on an action: use **citizen-develop**.
 - Citizen is connected and you are setting up the members page, its invitations
@@ -91,8 +93,14 @@ Decide which of the two you need, then go there.
 - **Default template** — a template created in every account that is seeded.
   Seeding skips a default template whose role name already exists in the
   account.
-- **Member** — the record roles are assigned to, such as a user or a membership.
+- **Member** — the record roles are assigned to. It is a person's membership in
+  one account, not the person, so a person who belongs to three accounts has
+  three members. Deleting a member deletes its role assignments with it.
   Assigning the same role twice leaves one assignment.
+- **Person as member** — the fallback for an app with no membership record, where
+  the person holds roles directly. A check made from a controller, a view or a
+  policy still counts only the current account's roles. A check made anywhere
+  else must name the account, or it counts the person's roles in every account.
 - **Grants** — the capabilities a member holds: every capability of every role
   assigned to them, with duplicates removed.
 - **Approved metrics** — the metrics in the catalog that appear in a member's
