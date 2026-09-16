@@ -262,5 +262,31 @@ module Citizen
 
       assert_select "form[action=?][method=post]", "/citizen/invitations/#{invitation.id}/resend"
     end
+
+    test "listing more members does not run more role queries" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      role = Role.create!(account_id: 1, name: "Worker", capabilities: [])
+      ::Member.create!(account_id: 1, name: "Pretend One").assign_role(role)
+
+      one = count_role_queries { get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 } }
+      ::Member.create!(account_id: 1, name: "Pretend Two").assign_role(role)
+      ::Member.create!(account_id: 1, name: "Pretend Three").assign_role(role)
+
+      assert_equal one, count_role_queries { get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 } }
+    end
+
+    private
+
+    def count_role_queries
+      count = 0
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") do |*, payload|
+        count += 1 if payload[:sql].include?("citizen_assignments") || payload[:sql].include?("citizen_roles")
+      end
+      yield
+      count
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
   end
 end
