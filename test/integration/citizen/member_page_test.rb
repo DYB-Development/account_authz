@@ -7,20 +7,29 @@ module Citizen
     setup do
       Citizen.reset!
       Citizen.catalog { permission :manage_members }
-      @manager = ::Member.create!
+      @manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
       @manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members], rank: 1))
     end
 
     teardown { Citizen.reset! }
 
     test "a manager opens a member's page and sees a role they hold" do
-      person = ::Member.create!
+      person = ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
       role = Role.create!(account_id: 1, name: "Editor", capabilities: [])
       person.assign_role(role)
 
       get "/citizen/members/#{person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
       assert_select "body", text: /Editor/
+    end
+
+    test "a manager is offered a role the person does not hold" do
+      person = ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
+      role = Role.create!(account_id: 1, name: "Editor", capabilities: [])
+
+      get "/citizen/members/#{person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/citizen/members/#{person.id}/roles", role.id.to_s
     end
   end
 end

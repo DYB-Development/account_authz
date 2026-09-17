@@ -10,5 +10,23 @@
         </div>
       <% end %>
     <% end %>
+
+    <% if @reach.includes_roles?(@held) %>
+      <%= ui_panel do %>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+          <% (@held & @roles).reject { |role| @last_manager.lost_by_taking?(@member, role) }.each do |role| %>
+            <%= ui_form(action: member_role_path(@member, role), method: :delete) do %>
+              <%= ui_button(label: "Take #{role.name}", variant: :danger, size: :sm) %>
+            <% end %>
+          <% end %>
+          <% (@roles - @held).each do |role| %>
+            <%= ui_form(action: member_roles_path(@member)) do %>
+              <%= hidden_field_tag :role_id, role.id, id: nil %>
+              <%= ui_button(label: "Give #{role.name}", variant: :secondary, size: :sm) %>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
   <% end %>
 <% end %>
