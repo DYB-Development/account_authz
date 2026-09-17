@@ -2,6 +2,9 @@ module Citizen
   class InvitationsController < ApplicationController
     requires_capability { Citizen.members_capability }
 
+    def new
+    end
+
     def create
       Citizen.members_source.invite(account_id: Current.account_id, invited_by: current_member, **invitation_params)
 
