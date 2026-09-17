@@ -1,0 +1,14 @@
+<%= ui_page(max_width: :lg) do %>
+  <%= ui_show_page(title: @member.name, back_url: members_path, subtitle: @member.email) %>
+  <%= ui_section(title: "Roles") do %>
+    <%= ui_panel do %>
+      <% if @held.any? %>
+        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+          <% @held.each do |role| %>
+            <%= ui_badge(label: role.name, variant: :info) %>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -1,0 +1,26 @@
+# frozen_string_literal: true
+
+require "test_helper"
+
+module Citizen
+  class MemberPageTest < ActionDispatch::IntegrationTest
+    setup do
+      Citizen.reset!
+      Citizen.catalog { permission :manage_members }
+      @manager = ::Member.create!
+      @manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members], rank: 1))
+    end
+
+    teardown { Citizen.reset! }
+
+    test "a manager opens a member's page and sees a role they hold" do
+      person = ::Member.create!
+      role = Role.create!(account_id: 1, name: "Editor", capabilities: [])
+      person.assign_role(role)
+
+      get "/citizen/members/#{person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_select "body", text: /Editor/
+    end
+  end
+end
