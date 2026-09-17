@@ -31,5 +31,13 @@ module Citizen
 
       assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/citizen/members/#{person.id}/roles", role.id.to_s
     end
+
+    test "a manager can remove the person from the team on their page" do
+      person = ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
+
+      get "/citizen/members/#{person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+
+      assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}"
+    end
   end
 end
