@@ -1,0 +1,10 @@
+<%= ui_page(max_width: :md) do %>
+  <%= ui_form_page(title: "Invite", back_url: members_path, subtitle: "Members") %>
+  <%= ui_panel do %>
+    <%= ui_form(action: invitations_path) do %>
+      <%= ui_form_field(attribute: "invitation[name]", label: "Name", required: true) %>
+      <%= ui_form_field(attribute: "invitation[email]", label: "Email", type: :email, required: true) %>
+      <%= ui_button(label: "Invite") %>
+    <% end %>
+  <% end %>
+<% end %>

@@ -1,62 +1,57 @@
 <%= ui_page(max_width: :lg) do %>
-  <%= ui_section(title: "Members", action: (can?(Citizen.roles_capability) ? { label: "Roles", href: roles_path } : nil)) do %>
-    <%= ui_grid(cols: { default: 1 }, gap: :md) do %>
-      <%= ui_panel do %>
-        <%= ui_form(action: invitations_path) do %>
-          <%= ui_form_field(attribute: "invitation[name]", label: "Name", required: true) %>
-          <%= ui_form_field(attribute: "invitation[email]", label: "Email", type: :email, required: true) %>
-          <%= ui_button(label: "Invite") %>
-        <% end %>
+  <%= ui_page_header(title: "Members") do |header| %>
+    <% if can?(Citizen.roles_capability) %>
+      <% header.action do %>
+        <%= ui_button(label: "Roles", href: roles_path, variant: :secondary) %>
       <% end %>
-      <% @invitations.each do |invitation| %>
-        <%= ui_panel do %>
-          <%= ui_section(title: invitation.name, subtitle: invitation.email, spacing: :sm) do %>
-            <%= ui_badge(label: "Invited", variant: :warning) %>
-            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-              <%= ui_form(action: resend_invitation_path(invitation)) do %>
-                <%= ui_button(label: "Send again", variant: :secondary, size: :sm) %>
-              <% end %>
-              <%= ui_form(action: invitation_path(invitation), method: :delete) do %>
-                <%= ui_button(label: "Cancel", variant: :danger, size: :sm) %>
-              <% end %>
-            </div>
-          <% end %>
+    <% end %>
+  <% end %>
+
+  <% if can?(Citizen.roles_capability) %>
+    <%= ui_mobile_actions do %>
+      <%= link_to "Roles", roles_path %>
+    <% end %>
+  <% end %>
+
+  <%= ui_section(title: "Team", action: {label: "Invite", href: new_invitation_path}) do %>
+    <%
+      member_columns = [
+        Keystone::Ui::Column.new(:name, "Name"),
+        Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true),
+        Keystone::Ui::Column.new(:roles, "Roles")
+      ]
+      member_rows = @members.map do |member|
+        held = @held_roles.fetch(member.id, [])
+        {
+          member: member,
+          name: member.name,
+          email: member.email,
+          roles: held.any? ? held.map(&:name).join(", ") : "None"
+        }
+      end
+    %>
+    <%= ui_data_table(items: member_rows, columns: member_columns, empty_message: "No members yet") do |table| %>
+      <% table.link(:name) { |row| member_path(row[:member]) } %>
+    <% end %>
+  <% end %>
+
+  <%= ui_section(title: "Invited") do %>
+    <%
+      invitation_columns = [
+        Keystone::Ui::Column.new(:name, "Name"),
+        Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true)
+      ]
+      invitation_rows = @invitations.map do |invitation|
+        { invitation: invitation, name: invitation.name, email: invitation.email }
+      end
+    %>
+    <%= ui_data_table(items: invitation_rows, columns: invitation_columns, empty_message: "No invitations") do |table| %>
+      <% table.actions do |row| %>
+        <%= ui_form(action: resend_invitation_path(row[:invitation])) do %>
+          <%= ui_button(label: "Send again", variant: :secondary, size: :sm) %>
         <% end %>
-      <% end %>
-      <% @members.each do |member| %>
-        <% held = @held_roles.fetch(member.id, []) %>
-        <%= ui_panel do %>
-          <%= ui_section(title: member.name, subtitle: member.email, spacing: :sm) do %>
-            <%= ui_grid(cols: { default: 1 }, gap: :md) do %>
-              <% if held.any? %>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                  <% held.each do |role| %>
-                    <%= ui_badge(label: role.name, variant: :info) %>
-                  <% end %>
-                </div>
-              <% end %>
-              <% if @reach.includes_roles?(held) %>
-                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
-                  <% (held & @roles).reject { |role| @last_manager.lost_by_taking?(member, role) }.each do |role| %>
-                    <%= ui_form(action: member_role_path(member, role), method: :delete) do %>
-                      <%= ui_button(label: "Take #{role.name}", variant: :danger, size: :sm) %>
-                    <% end %>
-                  <% end %>
-                  <% (@roles - held).each do |role| %>
-                    <%= ui_form(action: member_roles_path(member)) do %>
-                      <%= hidden_field_tag :role_id, role.id, id: nil %>
-                      <%= ui_button(label: "Give #{role.name}", variant: :secondary, size: :sm) %>
-                    <% end %>
-                  <% end %>
-                </div>
-                <% if Citizen.members_source.removable?(member) && !@last_manager.lost_by_removing?(member) %>
-                  <%= ui_form(action: member_path(member), method: :delete) do %>
-                    <%= ui_button(label: "Remove", variant: :danger, size: :sm) %>
-                  <% end %>
-                <% end %>
-              <% end %>
-            <% end %>
-          <% end %>
+        <%= ui_form(action: invitation_path(row[:invitation]), method: :delete) do %>
+          <%= ui_button(label: "Cancel", variant: :danger, size: :sm) %>
         <% end %>
       <% end %>
     <% end %>

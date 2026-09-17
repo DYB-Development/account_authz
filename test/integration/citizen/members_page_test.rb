@@ -48,6 +48,16 @@ module Citizen
       assert_includes response.body, "Pretend Person"
     end
 
+    test "the members page lists the team as a table with a way into each person" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      person = ::Member.create!(account_id: 1, name: "Pretend Person")
+
+      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "table tbody tr a[href=?]", "/citizen/members/#{person.id}"
+    end
+
     test "the members page shows each member's email" do
       manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
@@ -88,29 +98,6 @@ module Citizen
       get "/citizen/members", params: { signed_in_member_id: lead.id, account_id: 1 }
 
       assert_response :success
-    end
-
-    test "the members page offers to give a member a role they do not hold" do
-      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
-      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
-      person = ::Member.create!(account_id: 1, name: "Pretend Person")
-      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
-
-      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
-
-      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/citizen/members/#{person.id}/roles", role.id.to_s
-    end
-
-    test "the members page offers to take away a role a member holds" do
-      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
-      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
-      person = ::Member.create!(account_id: 1, name: "Pretend Person")
-      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
-      person.assign_role(role)
-
-      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
-
-      assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}/roles/#{role.id}"
     end
 
     test "the members page renders inside the app's layout" do
@@ -166,23 +153,13 @@ module Citizen
       assert_select "form[action^=?]", "/citizen/members/#{owner.id}/roles", count: 0
     end
 
-    test "the members page offers a form to invite a person by email" do
+    test "the members page offers a button leading to the invitation form" do
       manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
 
       get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
 
-      assert_select "form[action='/citizen/invitations'][method=post] input[name='invitation[email]']"
-    end
-
-    test "the members page offers to remove a member within the viewer's reach" do
-      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
-      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
-      person = ::Member.create!(account_id: 1, name: "Pretend Person")
-
-      get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 }
-
-      assert_select "form[action=?] input[name=_method][value=delete]", "/citizen/members/#{person.id}"
+      assert_select "a[href=?]", "/citizen/invitations/new", text: "Invite"
     end
 
     test "the members page does not offer to remove the account owner" do
@@ -287,6 +264,15 @@ module Citizen
       count
     ensure
       ActiveSupport::Notifications.unsubscribe(subscriber)
+    end
+
+    test "the invitation page offers a form to invite a person by email" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+
+      get "/citizen/invitations/new", params: { signed_in_member_id: manager.id, account_id: 1 }
+
+      assert_select "form[action='/citizen/invitations'][method=post] input[name='invitation[email]']"
     end
   end
 end

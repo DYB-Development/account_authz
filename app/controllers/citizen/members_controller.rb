@@ -11,6 +11,14 @@ module Citizen
       @roles = Role.in_account(Current.account_id).select { |role| reach.includes_role?(role) }
     end
 
+    def show
+      @member = Citizen.members_source.members(Current.account_id).find(params[:id])
+      @held = Assignment.where(member: @member, role: Role.in_account(Current.account_id)).includes(:role).map(&:role)
+      @reach = reach
+      @last_manager = LastManager.new(account_id: Current.account_id)
+      @roles = Role.in_account(Current.account_id).select { |role| reach.includes_role?(role) }
+    end
+
     def destroy
       member = Citizen.members_source.members(Current.account_id).find(params[:id])
       return refuse(:member_out_of_reach, back_to: members_path) unless reach.includes_member?(member)
