@@ -108,7 +108,7 @@ class AccountMembers
 end
 ```
 
-The source's `members(account_id)` returns the account's members as a relation that responds to `find`, `invite` sends the app's own invitation, `invitations(account_id)` returns the ones still waiting as a relation that responds to `find`, `resend_invitation` sends one again, `cancel_invitation` withdraws one, `removable?` says whether a member may be removed at all (such as the account owner), and `remove` takes the member off the account; each responds to `name` and `email`
+The source's `members(account_id)` returns the account's members as a relation that responds to `find`, `invite` sends the app's own invitation, `invitations(account_id)` returns the ones still waiting as a relation that responds to `find`, `resend_invitation` sends one again, `cancel_invitation` withdraws one, `removable?` says whether a member may be removed at all (such as the account owner), and `remove` takes the member off the account; each responds to `name` and `email`. A source may also answer `member_for(account_id:, person:)`, which gives back the membership a signed-in person holds in that account — needed when a host app hands the person rather than their membership, and left out when the two are the same thing
 and includes `Citizen::Member`. Engine controllers inherit the host's
 `ApplicationController`, so the host's sign-in, `current_member` and
 `Citizen::Current.account_id` apply. The page renders with keystone_ui inside the

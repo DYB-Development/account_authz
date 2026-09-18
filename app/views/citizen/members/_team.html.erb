@@ -20,7 +20,7 @@
 <% if chosen %>
   <%
     person_chosen = members.find { |member| member.id.to_s == chosen.to_s }
-    reach = Citizen::Reach.new(person, account_id: account)
+    reach = Citizen::Reach.new(Citizen::ActingMember.for(person: person, account: account), account_id: account)
     last_manager = Citizen::LastManager.new(account_id: account)
     held = Citizen::Assignment.where(member: person_chosen, role: Citizen::Role.in_account(account)).includes(:role).map(&:role)
     within_reach = Citizen::Role.in_account(account).select { |role| reach.includes_role?(role) }

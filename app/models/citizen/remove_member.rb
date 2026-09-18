@@ -24,7 +24,7 @@ module Citizen
     private
 
     def reach
-      @reach ||= Reach.new(@person, account_id: @account)
+      @reach ||= Reach.new(ActingMember.for(person: @person, account: @account), account_id: @account)
     end
 
     def member
