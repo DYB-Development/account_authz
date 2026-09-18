@@ -66,4 +66,14 @@ class TeamPartialTest < ActionView::TestCase
 
     assert_includes rendered, "?member_id=#{person.id}"
   end
+
+  test "asking for someone who is not in the account shows no person" do
+    render partial: "citizen/members/team", locals: {
+      person: @manager, account: 1, selection: { member_id: "999999" },
+      submit_urls: { invite: "/here/invite", resend: "/here/resend", cancel: "/here/cancel",
+                    give_role: "/here/give", take_role: "/here/take", remove: "/here/remove" }
+    }
+
+    assert_not_includes rendered, 'action="/here/take"'
+  end
 end
