@@ -11,6 +11,14 @@ module Citizen
 
     teardown { Citizen.reset! }
 
+  def count_queries(&block)
+    count = 0
+    counter = ->(*, payload) { count += 1 unless payload[:name] == "SCHEMA" }
+    ActiveSupport::Notifications.subscribed(counter, "sql.active_record", &block)
+    count
+  end
+
+
     test "a member who can manage members opens the members page" do
       manager = ::Member.create!
       manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
@@ -273,6 +281,16 @@ module Citizen
       get "/citizen/invitations/new", params: { signed_in_member_id: manager.id, account_id: 1 }
 
       assert_select "form[action='/citizen/invitations'][method=post] input[name='invitation[email]']"
+    end
+
+    test "the members page asks for nothing the list does not show" do
+      manager = ::Member.create!(account_id: 1, name: "Pretend Manager")
+      manager.assign_role(Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members]))
+      Role.create!(account_id: 1, name: "Editor", capabilities: [])
+
+      count = count_queries { get "/citizen/members", params: { signed_in_member_id: manager.id, account_id: 1 } }
+
+      assert_operator count, :<=, 10
     end
   end
 end
