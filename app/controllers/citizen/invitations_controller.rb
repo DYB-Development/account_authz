@@ -6,31 +6,25 @@ module Citizen
     end
 
     def create
-      Citizen.members_source.invite(account_id: Current.account_id, invited_by: current_member, **invitation_params)
-
-      redirect_to members_path
+      run Invite, name: params.require(:invitation)[:name], email: params.require(:invitation)[:email]
     end
 
     def resend
-      Citizen.members_source.resend_invitation(invitation)
-
-      redirect_to members_path
+      run ResendInvitation, invitation_id: params[:id]
     end
 
     def destroy
-      Citizen.members_source.cancel_invitation(invitation)
-
-      redirect_to members_path
+      run CancelInvitation, invitation_id: params[:id]
     end
 
     private
 
-    def invitation
-      Citizen.members_source.invitations(Current.account_id).find(params[:id])
-    end
+    def run(action, **values)
+      result = action.new(person: current_member, account: Current.account_id, values: values).call
 
-    def invitation_params
-      params.require(:invitation).permit(:name, :email).to_h.symbolize_keys
+      return redirect_to(members_path, alert: result.message) unless result.ok?
+
+      redirect_to members_path
     end
   end
 end
