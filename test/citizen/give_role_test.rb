@@ -20,5 +20,23 @@ module Citizen
 
       assert_includes @person.citizen_roles.in_account(1), @role
     end
+
+    test "a person who is not themselves a member gives a role through their membership" do
+      source = Class.new do
+        def self.members(account_id) = ::Member.where(account_id: account_id)
+
+        def self.member_for(account_id:, person:) = ::Member.find_by(account_id: account_id, name: person)
+      end
+      was = Citizen.members_source
+      Citizen.members_source = source
+
+      begin
+        GiveRole.new(person: "Pretend Manager", account: 1, values: { member_id: @person.id, role_id: @role.id }).call
+      ensure
+        Citizen.members_source = was
+      end
+
+      assert_includes @person.citizen_roles.in_account(1), @role
+    end
   end
 end
