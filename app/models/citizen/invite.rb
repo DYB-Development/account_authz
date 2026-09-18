@@ -4,7 +4,7 @@ module Citizen
   class Invite
     def initialize(person:, account:, values:)
       @person = person
-      @account = account
+      @account = AccountId.from(account)
       @values = values
     end
 
