@@ -1,5 +1,6 @@
 <%
   account = Citizen::AccountId.from(account)
+  chosen = selection[:member_id].presence
   members = Citizen.members_source.members(account)
   held_roles = Citizen::Assignment.where(member: members.to_a, role: Citizen::Role.in_account(account)).includes(:role)
     .group_by(&:member_id).transform_values { |assignments| assignments.map(&:role) }
@@ -8,10 +9,49 @@
 
 <%= ui_section(title: "Team") do %>
   <%= ui_data_table(
-        items: members.map { |member| {name: member.name, email: member.email, roles: held_roles.fetch(member.id, []).map(&:name).join(", ").presence || "None"} },
+        items: members.map { |member| {member_id: member.id, name: member.name, email: member.email, roles: held_roles.fetch(member.id, []).map(&:name).join(", ").presence || "None"} },
         columns: [Keystone::Ui::Column.new(:name, "Name"), Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true), Keystone::Ui::Column.new(:roles, "Roles")],
         empty_message: "No members yet"
-      ) %>
+      ) do |table| %>
+    <% table.link(:name) { |row| "?member_id=#{row[:member_id]}" } %>
+  <% end %>
+<% end %>
+
+<% if chosen %>
+  <%
+    person_chosen = members.find { |member| member.id.to_s == chosen.to_s }
+    reach = Citizen::Reach.new(person, account_id: account)
+    last_manager = Citizen::LastManager.new(account_id: account)
+    held = Citizen::Assignment.where(member: person_chosen, role: Citizen::Role.in_account(account)).includes(:role).map(&:role)
+    within_reach = Citizen::Role.in_account(account).select { |role| reach.includes_role?(role) }
+  %>
+  <%= ui_section(title: person_chosen.name, subtitle: person_chosen.email) do %>
+    <%= ui_panel do %>
+      <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+        <% (held & within_reach).reject { |role| last_manager.lost_by_taking?(person_chosen, role) }.each do |role| %>
+          <%= ui_form(action: submit_urls[:take_role], method: :patch) do %>
+            <%= hidden_field_tag :member_id, person_chosen.id, id: nil %>
+            <%= hidden_field_tag :role_id, role.id, id: nil %>
+            <%= ui_button(label: "Take #{role.name}", variant: :danger, size: :sm) %>
+          <% end %>
+        <% end %>
+        <% (within_reach - held).each do |role| %>
+          <%= ui_form(action: submit_urls[:give_role], method: :patch) do %>
+            <%= hidden_field_tag :member_id, person_chosen.id, id: nil %>
+            <%= hidden_field_tag :role_id, role.id, id: nil %>
+            <%= ui_button(label: "Give #{role.name}", variant: :secondary, size: :sm) %>
+          <% end %>
+        <% end %>
+      </div>
+
+      <% if Citizen.members_source.removable?(person_chosen) && !last_manager.lost_by_removing?(person_chosen) %>
+        <%= ui_form(action: submit_urls[:remove], method: :patch) do %>
+          <%= hidden_field_tag :member_id, person_chosen.id, id: nil %>
+          <%= ui_button(label: "Remove from team", variant: :danger, size: :sm) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
 <% end %>
 
 <%= ui_section(title: "Invite") do %>
