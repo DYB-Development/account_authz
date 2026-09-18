@@ -1,0 +1,43 @@
+<%
+  members = Citizen.members_source.members(account)
+  held_roles = Citizen::Assignment.where(member: members.to_a, role: Citizen::Role.in_account(account)).includes(:role)
+    .group_by(&:member_id).transform_values { |assignments| assignments.map(&:role) }
+  invitations = Citizen.members_source.invitations(account)
+%>
+
+<%= ui_section(title: "Team") do %>
+  <%= ui_data_table(
+        items: members.map { |member| {name: member.name, email: member.email, roles: held_roles.fetch(member.id, []).map(&:name).join(", ").presence || "None"} },
+        columns: [Keystone::Ui::Column.new(:name, "Name"), Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true), Keystone::Ui::Column.new(:roles, "Roles")],
+        empty_message: "No members yet"
+      ) %>
+<% end %>
+
+<%= ui_section(title: "Invite") do %>
+  <%= ui_panel do %>
+    <%= ui_form(action: submit_urls[:invite], method: :patch) do %>
+      <%= ui_form_field(attribute: "name", label: "Name", required: true) %>
+      <%= ui_form_field(attribute: "email", label: "Email", type: :email, required: true) %>
+      <%= ui_button(label: "Invite") %>
+    <% end %>
+  <% end %>
+<% end %>
+
+<%= ui_section(title: "Invited") do %>
+  <%= ui_data_table(
+        items: invitations.map { |invitation| {invitation_id: invitation.id, name: invitation.name, email: invitation.email} },
+        columns: [Keystone::Ui::Column.new(:name, "Name"), Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true)],
+        empty_message: "No invitations"
+      ) do |table| %>
+    <% table.actions do |row| %>
+      <%= ui_form(action: submit_urls[:resend], method: :patch) do %>
+        <%= hidden_field_tag :invitation_id, row[:invitation_id], id: nil %>
+        <%= ui_button(label: "Send again", variant: :secondary, size: :sm) %>
+      <% end %>
+      <%= ui_form(action: submit_urls[:cancel], method: :patch) do %>
+        <%= hidden_field_tag :invitation_id, row[:invitation_id], id: nil %>
+        <%= ui_button(label: "Cancel", variant: :danger, size: :sm) %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>
