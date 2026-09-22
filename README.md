@@ -37,7 +37,7 @@ AccountAuthz.approved_metrics(grants)          # => [:revenue, :deals]
 ## Installation
 
 ```ruby
-gem "account_authz", github: "DYB-Development/account_authz", branch: "main"
+gem "account_authz"
 ```
 
 ## License
