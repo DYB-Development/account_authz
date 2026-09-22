@@ -4,7 +4,7 @@ class ApplicationController < ActionController::Base
 
   helper Rails.application.routes.url_helpers
 
-  before_action { Citizen::Current.account_id = params[:account_id] }
+  before_action { AccountAuthz::Current.account_id = params[:account_id] }
 
   private
 

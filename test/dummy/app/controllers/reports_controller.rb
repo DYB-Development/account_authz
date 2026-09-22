@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 class ReportsController < ApplicationController
-  include Citizen::Authorization
+  include AccountAuthz::Authorization
 
-  before_action { Citizen::Current.account_id = params[:account_id] }
+  before_action { AccountAuthz::Current.account_id = params[:account_id] }
 
   def show
   end

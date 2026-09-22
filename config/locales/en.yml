@@ -1,5 +1,5 @@
 en:
-  citizen:
+  account_authz:
     refusals:
       role_out_of_reach: "You can only give or take roles ranked below your own."
       member_out_of_reach: "You can only change members ranked below you."
