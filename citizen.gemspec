@@ -27,6 +27,11 @@ Gem::Specification.new do |spec|
   spec.files = Dir.chdir(File.expand_path(__dir__)) do
     Dir["{app,config,db,lib,the_local}/**/*", "LICENSE.txt", "Rakefile", "README.md"]
   end
+  # json 3 dropped the second argument ActiveSupport::JSON.decode passes it, so
+  # every read of the capabilities column raises until Rails ships a release
+  # that calls the new interface.
+  spec.add_dependency "json", "< 3"
+
 
   spec.add_dependency "rails", ">= 7.1"
   spec.add_dependency "pundit", ">= 2.0"
