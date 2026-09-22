@@ -1,5 +1,5 @@
 Rails.application.routes.draw do
-  mount Citizen::Engine => "/citizen"
+  mount AccountAuthz::Engine => "/account_authz"
 
   get "reports" => "reports#show"
 end

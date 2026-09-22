@@ -1,0 +1,59 @@
+<%= ui_page(max_width: :lg) do %>
+  <%= ui_page_header(title: "Members") do |header| %>
+    <% if can?(AccountAuthz.roles_capability) %>
+      <% header.action do %>
+        <%= ui_button(label: "Roles", href: roles_path, variant: :secondary) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <% if can?(AccountAuthz.roles_capability) %>
+    <%= ui_mobile_actions do %>
+      <%= link_to "Roles", roles_path %>
+    <% end %>
+  <% end %>
+
+  <%= ui_section(title: "Team", action: {label: "Invite", href: new_invitation_path}) do %>
+    <%
+      member_columns = [
+        Keystone::Ui::Column.new(:name, "Name"),
+        Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true),
+        Keystone::Ui::Column.new(:roles, "Roles")
+      ]
+      member_rows = @members.map do |member|
+        held = @held_roles.fetch(member.id, [])
+        {
+          member: member,
+          name: member.name,
+          email: member.email,
+          roles: held.any? ? held.map(&:name).join(", ") : "None"
+        }
+      end
+    %>
+    <%= ui_data_table(items: member_rows, columns: member_columns, empty_message: "No members yet") do |table| %>
+      <% table.link(:name) { |row| member_path(row[:member]) } %>
+    <% end %>
+  <% end %>
+
+  <%= ui_section(title: "Invited") do %>
+    <%
+      invitation_columns = [
+        Keystone::Ui::Column.new(:name, "Name"),
+        Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true)
+      ]
+      invitation_rows = @invitations.map do |invitation|
+        { invitation: invitation, name: invitation.name, email: invitation.email }
+      end
+    %>
+    <%= ui_data_table(items: invitation_rows, columns: invitation_columns, empty_message: "No invitations") do |table| %>
+      <% table.actions do |row| %>
+        <%= ui_form(action: resend_invitation_path(row[:invitation])) do %>
+          <%= ui_button(label: "Send again", variant: :secondary, size: :sm) %>
+        <% end %>
+        <%= ui_form(action: invitation_path(row[:invitation]), method: :delete) do %>
+          <%= ui_button(label: "Cancel", variant: :danger, size: :sm) %>
+        <% end %>
+      <% end %>
+    <% end %>
+  <% end %>
+<% end %>

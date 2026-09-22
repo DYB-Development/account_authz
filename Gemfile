@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-# Specify your gem's dependencies in citizen.gemspec.
+# Specify your gem's dependencies in account_authz.gemspec.
 gemspec
 
 # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]

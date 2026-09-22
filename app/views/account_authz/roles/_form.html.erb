@@ -1,0 +1,16 @@
+<% held = Array(role.capabilities).map(&:to_s) %>
+<%= ui_panel do %>
+  <%= ui_form(action: url, method: form_method) do %>
+    <%= hidden_field_tag "role[capabilities][]", "", id: nil %>
+    <%= ui_form_field(attribute: "role[name]", label: "Name", value: role.name, errors: role.errors.full_messages_for(:name)) %>
+    <%= ui_form_field(attribute: "role[rank]", label: "Rank", type: :number, min: 0, value: role.rank, hint: "A member manages members and roles ranked below their highest role.") %>
+    <%= ui_section(title: "Capabilities", spacing: :sm) do %>
+      <%= ui_grid(cols: { default: 1, sm: 2 }, gap: :sm) do %>
+        <% AccountAuthz.capabilities.each do |capability| %>
+          <%= ui_checkbox_row(name: "role[capabilities][]", value: capability.to_s, label: capability.to_s, checked: held.include?(capability.to_s)) %>
+        <% end %>
+      <% end %>
+    <% end %>
+    <%= ui_button(label: "Save") %>
+  <% end %>
+<% end %>

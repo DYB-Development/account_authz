@@ -1,4 +1,4 @@
-Citizen::Engine.routes.draw do
+AccountAuthz::Engine.routes.draw do
   resources :members, only: [ :index, :show, :destroy ] do
     resources :roles, only: [ :create, :destroy ], controller: "member_roles"
   end

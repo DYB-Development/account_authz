@@ -6,6 +6,9 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+## [0.1.0] - 2026-09-22
+
 ### Added
-- Initial gem scaffold: capability-based authorization (`Citizen`), plain Ruby —
-  capabilities are code, roles are data, Pundit enforces.
+- Capability-based authorization (`AccountAuthz`) — the app declares a catalog of
+  capabilities in code, an account manages roles as data that bundle them, and
+  Pundit enforces the decision.
