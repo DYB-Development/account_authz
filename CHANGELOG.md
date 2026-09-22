@@ -6,6 +6,14 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-22
+
+### Fixed
+- The assignments index on the member columns is renamed to match the gem's new
+  name. The first rename migration left it under the old name, because Rails
+  renames an index with a table only when the index still carries the name Rails
+  would generate for it.
+
 ## [0.1.0] - 2026-09-22
 
 ### Added
