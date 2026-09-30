@@ -105,6 +105,17 @@ module AccountAuthz
       assert_not member.can?(:revenue, account_id: 1)
     end
 
+    test "a role's capabilities changed after a check are seen by the next check" do
+      role = Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue])
+      member = ::Member.create!
+      member.assign_role(role)
+      member.can?(:revenue, account_id: 1)
+
+      Role.find(role.id).update!(capabilities: %w[tickets])
+
+      assert_not member.can?(:revenue, account_id: 1)
+    end
+
     private
 
     def roles_built(&block)
