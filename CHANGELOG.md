@@ -6,6 +6,8 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-30
+
 ### Fixed
 - A member's capabilities in an account are loaded once per request, and every
   later check in the same request answers from them instead of building the
