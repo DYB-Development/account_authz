@@ -10,6 +10,7 @@ module AccountAuthz
     end
 
     def assign_role(role)
+      Current.capabilities = {}
       account_authz_assignments.find_or_create_by(role: role)
     end
 

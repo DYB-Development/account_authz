@@ -85,6 +85,15 @@ module AccountAuthz
       assert_equal 1, roles_built { 3.times { member.can?(:revenue, account_id: 1) } }
     end
 
+    test "a role assigned after a check is seen by the next check" do
+      member = ::Member.create!
+      member.can?(:revenue, account_id: 1)
+
+      ::Member.find(member.id).assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+
+      assert member.can?(:revenue, account_id: 1)
+    end
+
     private
 
     def roles_built(&block)
