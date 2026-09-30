@@ -29,6 +29,18 @@ module AccountAuthz
       assert_includes response.body, "revenue: false"
     end
 
+    test "a new request does not reuse capabilities loaded by an earlier one" do
+      role = Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue])
+      member = ::Member.create!
+      member.assign_role(role)
+      get "/reports", params: { member_id: member.id, account_id: 1 }
+
+      role.update_columns(capabilities: [])
+      get "/reports", params: { member_id: member.id, account_id: 1 }
+
+      assert_includes response.body, "revenue: false"
+    end
+
     test "can? helper denies when no current account is set" do
       member = ::Member.create!
       member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
