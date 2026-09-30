@@ -77,5 +77,21 @@ module AccountAuthz
 
       assert_equal %i[revenue], member.capabilities(account_id: 1)
     end
+
+    test "checking capabilities repeatedly for the same member and account builds the roles once" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+
+      assert_equal 1, roles_built { 3.times { member.can?(:revenue, account_id: 1) } }
+    end
+
+    private
+
+    def roles_built(&block)
+      built = 0
+      counter = ->(*, payload) { built += payload[:record_count] if payload[:class_name] == Role.name }
+      ActiveSupport::Notifications.subscribed(counter, "instantiation.active_record", &block)
+      built
+    end
   end
 end
