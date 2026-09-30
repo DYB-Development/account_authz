@@ -4,6 +4,7 @@ module AccountAuthz
   class Role < ApplicationRecord
     validates :name, presence: true
     validate :capabilities_within_catalog
+    after_save { Current.capabilities = {} }
 
     scope :in_account, ->(account_id) { where(account_id: account_id) }
 

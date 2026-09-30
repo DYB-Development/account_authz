@@ -10,16 +10,20 @@ module AccountAuthz
     end
 
     def assign_role(role)
+      Current.capabilities = {}
       account_authz_assignments.find_or_create_by(role: role)
     end
 
     def revoke_role(role)
+      Current.capabilities = {}
       account_authz_assignments.where(role: role).destroy_all
     end
 
     def capabilities(account_id: nil)
-      roles = account_id ? account_authz_roles.where(account_id: account_id) : account_authz_roles
-      roles.flat_map(&:capabilities).uniq.map(&:to_sym)
+      Current.capabilities[[ self.class.name, id, account_id ]] ||= begin
+        roles = account_id ? account_authz_roles.where(account_id: account_id) : account_authz_roles
+        roles.flat_map(&:capabilities).uniq.map(&:to_sym)
+      end
     end
 
     def can?(capability, account_id: nil)

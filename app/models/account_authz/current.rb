@@ -3,5 +3,6 @@
 module AccountAuthz
   class Current < ActiveSupport::CurrentAttributes
     attribute :account_id
+    attribute :capabilities, default: -> { {} }
   end
 end

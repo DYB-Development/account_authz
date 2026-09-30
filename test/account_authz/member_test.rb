@@ -77,5 +77,68 @@ module AccountAuthz
 
       assert_equal %i[revenue], member.capabilities(account_id: 1)
     end
+
+    test "checking capabilities repeatedly for the same member and account builds the roles once" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+
+      assert_equal 1, roles_built { 3.times { member.can?(:revenue, account_id: 1) } }
+    end
+
+    test "a check for another account is not answered from the first account's capabilities" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+      member.can?(:revenue, account_id: 1)
+
+      assert_not member.can?(:revenue, account_id: 2)
+    end
+
+    test "a check for another member is not answered from the first member's capabilities" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+      member.can?(:revenue, account_id: 1)
+
+      assert_not ::Member.create!.can?(:revenue, account_id: 1)
+    end
+
+    test "a role assigned after a check is seen by the next check" do
+      member = ::Member.create!
+      member.can?(:revenue, account_id: 1)
+
+      ::Member.find(member.id).assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+
+      assert member.can?(:revenue, account_id: 1)
+    end
+
+    test "a role revoked after a check is seen by the next check" do
+      role = Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue])
+      member = ::Member.create!
+      member.assign_role(role)
+      member.can?(:revenue, account_id: 1)
+
+      ::Member.find(member.id).revoke_role(role)
+
+      assert_not member.can?(:revenue, account_id: 1)
+    end
+
+    test "a role's capabilities changed after a check are seen by the next check" do
+      role = Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue])
+      member = ::Member.create!
+      member.assign_role(role)
+      member.can?(:revenue, account_id: 1)
+
+      Role.find(role.id).update!(capabilities: %w[tickets])
+
+      assert_not member.can?(:revenue, account_id: 1)
+    end
+
+    private
+
+    def roles_built(&block)
+      built = 0
+      counter = ->(*, payload) { built += payload[:record_count] if payload[:class_name] == Role.name }
+      ActiveSupport::Notifications.subscribed(counter, "instantiation.active_record", &block)
+      built
+    end
   end
 end

@@ -6,6 +6,12 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+### Fixed
+- A member's capabilities in an account are loaded once per request, and every
+  later check in the same request answers from them instead of building the
+  member's roles again. Assigning or revoking a role, or saving a role, clears
+  them, so the next check sees the change.
+
 ## [0.1.1] - 2026-09-22
 
 ### Fixed
