@@ -18,7 +18,7 @@ module AccountAuthz
     end
 
     def capabilities(account_id: nil)
-      Current.capabilities[[self.class.name, id, account_id]] ||= begin
+      Current.capabilities[[ self.class.name, id, account_id ]] ||= begin
         roles = account_id ? account_authz_roles.where(account_id: account_id) : account_authz_roles
         roles.flat_map(&:capabilities).uniq.map(&:to_sym)
       end
