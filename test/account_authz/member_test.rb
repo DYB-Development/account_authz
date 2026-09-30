@@ -94,6 +94,17 @@ module AccountAuthz
       assert member.can?(:revenue, account_id: 1)
     end
 
+    test "a role revoked after a check is seen by the next check" do
+      role = Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue])
+      member = ::Member.create!
+      member.assign_role(role)
+      member.can?(:revenue, account_id: 1)
+
+      ::Member.find(member.id).revoke_role(role)
+
+      assert_not member.can?(:revenue, account_id: 1)
+    end
+
     private
 
     def roles_built(&block)

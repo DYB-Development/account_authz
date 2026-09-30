@@ -15,6 +15,7 @@ module AccountAuthz
     end
 
     def revoke_role(role)
+      Current.capabilities = {}
       account_authz_assignments.where(role: role).destroy_all
     end
 
