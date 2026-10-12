@@ -32,6 +32,10 @@ module AccountAuthz
       assert_no_numbered_links([ signed_in("/account_authz/members"), signed_in("/account_authz/members/#{@person.to_param}") ])
     end
 
+    test "the roles pages link to no numbered address" do
+      assert_no_numbered_links([ signed_in("/account_authz/roles"), signed_in("/account_authz/roles/#{@role.to_param}/edit") ])
+    end
+
     private
 
     def signed_in(path) = "#{path}?signed_in_member_id=#{@manager.id}&account_id=1"
