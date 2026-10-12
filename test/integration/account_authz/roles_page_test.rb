@@ -123,6 +123,14 @@ module AccountAuthz
       assert_equal %w[view_reports], css_select("form[action='/account_authz/roles/#{role.to_param}'] input[type=checkbox][checked]").map { |box| box["value"] }
     end
 
+    test "a numbered role address is not found" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
+      get "/account_authz/roles/#{role.id}/edit", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_response :not_found
+    end
+
     test "the roles page offers to add each default template" do
       AccountAuthz.templates { template :reporter, capabilities: %w[view_reports], default: true }
 
