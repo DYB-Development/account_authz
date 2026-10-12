@@ -31,7 +31,7 @@
         <% (held & within_reach).reject { |role| last_manager.lost_by_taking?(person_chosen, role) }.each do |role| %>
           <%= ui_form(action: submit_urls[:take_role], method: :patch) do %>
             <%= hidden_field_tag :member_id, person_chosen.id, id: nil %>
-            <%= hidden_field_tag :role_id, role.id, id: nil %>
+            <%= hidden_field_tag :role.to_param, role.id, id: nil %>
             <%= ui_button(label: "Take #{role.name}", variant: :danger, size: :sm) %>
           <% end %>
         <% end %>

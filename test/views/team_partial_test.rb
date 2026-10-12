@@ -56,6 +56,20 @@ class TeamPartialTest < ActionView::TestCase
     assert_includes rendered, 'action="/here/take"'
   end
 
+  test "the team section takes a role by its code" do
+    person = ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
+    role = AccountAuthz::Role.create!(account_id: 1, name: "Editor", capabilities: [], rank: 0)
+    person.assign_role(role)
+
+    render partial: "account_authz/members/team", locals: {
+      person: @manager, account: 1, selection: { member_id: person.id.to_s },
+      submit_urls: { invite: "/here/invite", resend: "/here/resend", cancel: "/here/cancel",
+                    give_role: "/here/give", take_role: "/here/take", remove: "/here/remove" }
+    }
+
+    assert_select "form[action='/here/take'] input[name=role_id][value=?]", role.public_code
+  end
+
   test "each row leads to that person" do
     person = ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
 
