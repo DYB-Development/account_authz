@@ -160,10 +160,17 @@ class TeamPartialTest < ActionView::TestCase
     assert_select "form[action='/here/give'] input[name=member_id][value=pretend-code]"
   end
 
+  test "taking a role from the chosen person sends the address the person gives" do
+    render_team_for_coded_person(holding: AccountAuthz::Role.create!(account_id: 1, name: "Editor", capabilities: [], rank: 0))
+
+    assert_select "form[action='/here/take'] input[name=member_id][value=pretend-code]"
+  end
+
   private
 
-  def render_team_for_coded_person
+  def render_team_for_coded_person(holding: nil)
     person = ::Member.create!(account_id: 1, name: "Coded Person", email: "coded@example.com")
+    person.assign_role(holding) if holding
     person.define_singleton_method(:to_param) { "pretend-code" }
     source = Class.new(MemberDirectory) do
       define_singleton_method(:member) { |_account_id, address| address == "pretend-code" ? person : raise(ActiveRecord::RecordNotFound) }
