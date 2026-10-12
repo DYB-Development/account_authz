@@ -103,4 +103,25 @@ class TeamPartialTest < ActionView::TestCase
 
     assert_not_includes rendered, 'action="/here/take"'
   end
+
+  test "the team section asks a source that answers the member lookup for the chosen member" do
+    person = ::Member.create!(account_id: 1, name: "Chosen Person", email: "chosen@example.com")
+    source = Class.new(MemberDirectory) do
+      define_singleton_method(:member) { |account_id, address| address == "pretend-code" ? members(account_id).find(person.id) : raise(ActiveRecord::RecordNotFound) }
+    end
+    was = AccountAuthz.members_source
+    AccountAuthz.members_source = source
+
+    begin
+      render partial: "account_authz/members/team", locals: {
+        person: @manager, account: 1, selection: { member_id: "pretend-code" },
+        submit_urls: { invite: "/here/invite", resend: "/here/resend", cancel: "/here/cancel",
+                      give_role: "/here/give", take_role: "/here/take", remove: "/here/remove" }
+      }
+    ensure
+      AccountAuthz.members_source = was
+    end
+
+    assert_select "h2.ks-section-title", text: "Chosen Person"
+  end
 end

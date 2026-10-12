@@ -17,7 +17,13 @@
   <% end %>
 <% end %>
 
-<% person_chosen = chosen && members.find { |member| member.id.to_s == chosen.to_s } %>
+<%
+  person_chosen = begin
+    chosen && AccountAuthz.find_member(account, chosen)
+  rescue ActiveRecord::RecordNotFound
+    nil
+  end
+%>
 <% if person_chosen %>
   <%
     reach = AccountAuthz::Reach.new(AccountAuthz::ActingMember.for(person: person, account: account), account_id: account)
