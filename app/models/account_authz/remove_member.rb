@@ -28,7 +28,7 @@ module AccountAuthz
     end
 
     def member
-      @member ||= AccountAuthz.members_source.members(@account).find(@values[:member_id])
+      @member ||= AccountAuthz.find_member(@account, @values[:member_id])
     end
   end
 end
