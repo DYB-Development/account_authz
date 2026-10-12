@@ -46,7 +46,7 @@ module AccountAuthz
     test "a manager takes a role away from a member" do
       @person.assign_role(@role)
 
-      delete "/account_authz/members/#{@person.id}/roles/#{@role.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+      delete "/account_authz/members/#{@person.id}/roles/#{@role.public_code}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
       assert_empty @person.account_authz_roles
     end
@@ -54,7 +54,7 @@ module AccountAuthz
     test "a member who cannot manage members cannot take a role away" do
       @person.assign_role(@role)
 
-      delete "/account_authz/members/#{@person.id}/roles/#{@role.id}", params: { signed_in_member_id: @person.id, account_id: 1 }
+      delete "/account_authz/members/#{@person.id}/roles/#{@role.public_code}", params: { signed_in_member_id: @person.id, account_id: 1 }
 
       assert_includes @person.account_authz_roles, @role
     end
@@ -71,7 +71,7 @@ module AccountAuthz
       owner = Role.create!(account_id: 1, name: "Owner", rank: 1, capabilities: [])
       @person.assign_role(owner)
 
-      delete "/account_authz/members/#{@person.id}/roles/#{owner.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+      delete "/account_authz/members/#{@person.id}/roles/#{owner.public_code}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
       assert_includes @person.account_authz_roles, owner
     end
@@ -88,7 +88,7 @@ module AccountAuthz
     test "the only manager cannot take away their own members role" do
       manager_role = @manager.account_authz_roles.first
 
-      delete "/account_authz/members/#{@manager.id}/roles/#{manager_role.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+      delete "/account_authz/members/#{@manager.id}/roles/#{manager_role.public_code}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
       assert_includes @manager.account_authz_roles, manager_role
     end
@@ -113,7 +113,7 @@ module AccountAuthz
     test "the only manager refused taking away their members role is told why" do
       manager_role = @manager.account_authz_roles.first
 
-      delete "/account_authz/members/#{@manager.id}/roles/#{manager_role.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
+      delete "/account_authz/members/#{@manager.id}/roles/#{manager_role.public_code}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
       assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
     end

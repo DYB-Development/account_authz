@@ -29,7 +29,7 @@ module AccountAuthz
     end
 
     def role
-      @role ||= Role.in_account(@account).find(@values[:role_id])
+      @role ||= Role.in_account(@account).find_by_public_code!(@values[:role_id])
     end
   end
 end

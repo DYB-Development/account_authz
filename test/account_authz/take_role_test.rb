@@ -17,13 +17,13 @@ module AccountAuthz
     teardown { AccountAuthz.reset! }
 
     test "taking a role removes it from the person" do
-      TakeRole.new(person: @manager, account: 1, values: { member_id: @person.id, role_id: @role.id }).call
+      TakeRole.new(person: @manager, account: 1, values: { member_id: @person.id, role_id: @role.public_code }).call
 
       assert_not_includes @person.reload.account_authz_roles.in_account(1), @role
     end
 
     test "taking the last role that manages members is refused" do
-      result = TakeRole.new(person: @manager, account: 1, values: { member_id: @manager.id, role_id: @manager.account_authz_roles.first.id }).call
+      result = TakeRole.new(person: @manager, account: 1, values: { member_id: @manager.id, role_id: @manager.account_authz_roles.first.public_code }).call
 
       assert_not result.ok?
     end
