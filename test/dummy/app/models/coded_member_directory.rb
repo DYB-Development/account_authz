@@ -1,0 +1,39 @@
+# frozen_string_literal: true
+
+class CodedMemberDirectory
+  def self.members(account_id)
+    CodedMember.where(account_id: account_id)
+  end
+
+  def self.member(account_id, address)
+    members(account_id).find_by_public_code!(address)
+  end
+
+  def self.invite(account_id:, name:, email:, invited_by:)
+    CodedInvitation.create!(account_id: account_id, name: name, email: email)
+  end
+
+  def self.invitations(account_id)
+    CodedInvitation.where(account_id: account_id)
+  end
+
+  def self.invitation(account_id, address)
+    invitations(account_id).find_by_public_code!(address)
+  end
+
+  def self.resend_invitation(invitation)
+    invitation.update!(sent_count: invitation.sent_count + 1)
+  end
+
+  def self.cancel_invitation(invitation)
+    invitation.destroy!
+  end
+
+  def self.removable?(member)
+    !member.owner?
+  end
+
+  def self.remove(member)
+    member.update!(account_id: nil)
+  end
+end

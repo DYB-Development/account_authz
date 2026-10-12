@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_12_230000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_12_240000) do
   create_table "account_authz_assignments", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "member_id", null: false
@@ -32,6 +32,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_12_230000) do
     t.string "public_code", null: false
     t.index ["account_id"], name: "index_account_authz_roles_on_account_id"
     t.index ["public_code"], name: "index_account_authz_roles_on_public_code", unique: true
+  end
+
+  create_table "coded_invitations", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.string "name", null: false
+    t.string "email", null: false
+    t.integer "sent_count", default: 1, null: false
+    t.string "public_code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["public_code"], name: "index_coded_invitations_on_public_code", unique: true
+  end
+
+  create_table "coded_members", force: :cascade do |t|
+    t.bigint "account_id"
+    t.string "name"
+    t.string "email"
+    t.boolean "owner", default: false, null: false
+    t.string "public_code", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["public_code"], name: "index_coded_members_on_public_code", unique: true
   end
 
   create_table "invitations", force: :cascade do |t|
