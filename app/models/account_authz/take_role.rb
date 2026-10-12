@@ -25,11 +25,11 @@ module AccountAuthz
     end
 
     def member
-      @member ||= AccountAuthz.members_source.members(@account).find(@values[:member_id])
+      @member ||= AccountAuthz.find_member(@account, @values[:member_id])
     end
 
     def role
-      @role ||= Role.in_account(@account).find(@values[:role_id])
+      @role ||= Role.in_account(@account).find_by_public_code!(@values[:role_id])
     end
   end
 end

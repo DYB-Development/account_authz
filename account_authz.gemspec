@@ -35,5 +35,6 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "rails", ">= 7.1"
   spec.add_dependency "pundit", ">= 2.0"
+  spec.add_dependency "public_code", "~> 0.2"
   spec.add_dependency "keystone_ui", ">= 0.9"
 end

@@ -2,6 +2,7 @@
 
 module AccountAuthz
   class Role < ApplicationRecord
+    has_public_code
     validates :name, presence: true
     validate :capabilities_within_catalog
     after_save { Current.capabilities = {} }

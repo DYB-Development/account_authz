@@ -29,7 +29,7 @@ module AccountAuthz
 
       get "/account_authz/members/#{person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
-      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/account_authz/members/#{person.id}/roles", role.id.to_s
+      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/account_authz/members/#{person.id}/roles", role.public_code
     end
 
     test "a manager can remove the person from the team on their page" do
@@ -38,6 +38,23 @@ module AccountAuthz
       get "/account_authz/members/#{person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
       assert_select "form[action=?] input[name=_method][value=delete]", "/account_authz/members/#{person.id}"
+    end
+
+    test "a source that answers the member lookup is asked for the member at the address" do
+      person = ::Member.create!(account_id: 1, name: "Pretend Person", email: "pretend@example.com")
+      source = Class.new(MemberDirectory) do
+        define_singleton_method(:member) { |account_id, address| address == "pretend-code" ? members(account_id).find(person.id) : raise(ActiveRecord::RecordNotFound) }
+      end
+      was = AccountAuthz.members_source
+      AccountAuthz.members_source = source
+
+      begin
+        get "/account_authz/members/pretend-code", params: { signed_in_member_id: @manager.id, account_id: 1 }
+      ensure
+        AccountAuthz.members_source = was
+      end
+
+      assert_select "form[action=?] input[name=_method][value=delete]", "/account_authz/members/#{person.to_param}"
     end
   end
 end

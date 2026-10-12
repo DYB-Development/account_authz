@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "public_code"
 require_relative "account_authz/version"
 require_relative "account_authz/engine"
 require_relative "account_authz/catalog"
@@ -36,6 +37,18 @@ module AccountAuthz
   def self.seed_default_roles(account_id)
     templates.defaults.reject { |template| Role.in_account(account_id).exists?(name: template.role_name) }
             .map { |template| Role.from_template(account_id: account_id, template: template.name) }
+  end
+
+  def self.find_member(account_id, address)
+    return members_source.member(account_id, address) if members_source.respond_to?(:member)
+
+    members_source.members(account_id).find(address)
+  end
+
+  def self.find_invitation(account_id, address)
+    return members_source.invitation(account_id, address) if members_source.respond_to?(:invitation)
+
+    members_source.invitations(account_id).find(address)
   end
 
   def self.reset!

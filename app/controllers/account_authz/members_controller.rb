@@ -9,7 +9,7 @@ module AccountAuthz
     end
 
     def show
-      @member = AccountAuthz.members_source.members(Current.account_id).find(params[:id])
+      @member = AccountAuthz.find_member(Current.account_id, params[:id])
       @held = Assignment.where(member: @member, role: Role.in_account(Current.account_id)).includes(:role).map(&:role)
       @reach = reach
       @last_manager = LastManager.new(account_id: Current.account_id)

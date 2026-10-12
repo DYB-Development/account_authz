@@ -88,7 +88,7 @@ module AccountAuthz
     test "a member who can manage roles renames a role" do
       role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
 
-      patch "/account_authz/roles/#{role.id}", params: { role: { name: "Renamed Role" }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{role.to_param}", params: { role: { name: "Renamed Role" }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal "Renamed Role", role.reload.name
     end
@@ -96,7 +96,7 @@ module AccountAuthz
     test "a member who can manage roles cannot change another account's role" do
       role = Role.create!(account_id: 2, name: "Other Account Role", capabilities: [])
 
-      patch "/account_authz/roles/#{role.id}", params: { role: { name: "Renamed Role" }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{role.to_param}", params: { role: { name: "Renamed Role" }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal "Other Account Role", role.reload.name
     end
@@ -104,7 +104,7 @@ module AccountAuthz
     test "unticking every capability on a role leaves it with none" do
       role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: %w[view_reports])
 
-      patch "/account_authz/roles/#{role.id}", params: { role: { name: "Pretend Role", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{role.to_param}", params: { role: { name: "Pretend Role", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_empty role.reload.capabilities
     end
@@ -118,9 +118,17 @@ module AccountAuthz
     test "the edit role form ticks the capabilities the role holds" do
       role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: %w[view_reports])
 
+      get "/account_authz/roles/#{role.to_param}/edit", params: { signed_in_member_id: @admin.id, account_id: 1 }
+
+      assert_equal %w[view_reports], css_select("form[action='/account_authz/roles/#{role.to_param}'] input[type=checkbox][checked]").map { |box| box["value"] }
+    end
+
+    test "a numbered role address is not found" do
+      role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
+
       get "/account_authz/roles/#{role.id}/edit", params: { signed_in_member_id: @admin.id, account_id: 1 }
 
-      assert_equal %w[view_reports], css_select("form[action='/account_authz/roles/#{role.id}'] input[type=checkbox][checked]").map { |box| box["value"] }
+      assert_response :not_found
     end
 
     test "the roles page offers to add each default template" do
@@ -136,7 +144,7 @@ module AccountAuthz
 
       get "/account_authz/roles", params: { signed_in_member_id: @admin.id, account_id: 1 }
 
-      assert_select "a[href=?]", "/account_authz/roles/#{role.id}/edit"
+      assert_select "a[href=?]", "/account_authz/roles/#{role.to_param}/edit"
     end
 
     test "the roles page links to the new role form" do
@@ -154,7 +162,7 @@ module AccountAuthz
     test "a member who can manage roles sets a role's rank" do
       role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
 
-      patch "/account_authz/roles/#{role.id}", params: { role: { name: "Pretend Role", rank: "2" }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{role.to_param}", params: { role: { name: "Pretend Role", rank: "2" }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal 2, role.reload.rank
     end
@@ -162,7 +170,7 @@ module AccountAuthz
     test "the edit role form shows the role's rank" do
       role = Role.create!(account_id: 1, name: "Pretend Role", rank: 3, capabilities: [])
 
-      get "/account_authz/roles/#{role.id}/edit", params: { signed_in_member_id: @admin.id, account_id: 1 }
+      get "/account_authz/roles/#{role.to_param}/edit", params: { signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_select "input[name='role[rank]'][value='3']"
     end
@@ -172,7 +180,7 @@ module AccountAuthz
       manager_role = Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members])
       @admin.assign_role(manager_role)
 
-      patch "/account_authz/roles/#{manager_role.id}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{manager_role.to_param}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal %w[manage_members], manager_role.reload.capabilities
     end
@@ -182,7 +190,7 @@ module AccountAuthz
       manager_role = Role.create!(account_id: 1, name: "Manager", capabilities: %w[manage_members])
       @admin.assign_role(manager_role)
 
-      patch "/account_authz/roles/#{manager_role.id}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{manager_role.to_param}", params: { role: { name: "Manager", capabilities: [ "" ] }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal "Someone else needs to be able to manage members first.", flash[:alert]
     end
@@ -199,7 +207,7 @@ module AccountAuthz
       AccountAuthz.catalog { permission :export_data }
       role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
 
-      patch "/account_authz/roles/#{role.id}", params: { role: { name: "Pretend Role", capabilities: %w[export_data] }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{role.to_param}", params: { role: { name: "Pretend Role", capabilities: %w[export_data] }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_empty role.reload.capabilities
     end
@@ -207,7 +215,7 @@ module AccountAuthz
     test "an editor is refused setting a role's rank above their own" do
       role = Role.create!(account_id: 1, name: "Pretend Role", capabilities: [])
 
-      patch "/account_authz/roles/#{role.id}", params: { role: { name: "Pretend Role", rank: "5" }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{role.to_param}", params: { role: { name: "Pretend Role", rank: "5" }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal 0, role.reload.rank
     end
@@ -222,7 +230,7 @@ module AccountAuthz
       Role.create!(account_id: 1, name: "Owner", rank: 9, capabilities: [])
       role = Role.create!(account_id: 1, name: "Senior", rank: 4, capabilities: [])
 
-      patch "/account_authz/roles/#{role.id}", params: { role: { name: "Renamed" }, signed_in_member_id: @admin.id, account_id: 1 }
+      patch "/account_authz/roles/#{role.to_param}", params: { role: { name: "Renamed" }, signed_in_member_id: @admin.id, account_id: 1 }
 
       assert_equal "Senior", role.reload.name
     end

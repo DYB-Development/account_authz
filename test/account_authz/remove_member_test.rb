@@ -19,5 +19,22 @@ module AccountAuthz
 
       assert_nil @person.reload.account_id
     end
+
+    test "removing asks a source that answers the member lookup for the member at the address" do
+      person = @person
+      source = Class.new(MemberDirectory) do
+        define_singleton_method(:member) { |account_id, address| address == "pretend-code" ? members(account_id).find(person.id) : raise(ActiveRecord::RecordNotFound) }
+      end
+      was = AccountAuthz.members_source
+      AccountAuthz.members_source = source
+
+      begin
+        RemoveMember.new(person: @manager, account: 1, values: { member_id: "pretend-code" }).call
+      ensure
+        AccountAuthz.members_source = was
+      end
+
+      assert_nil @person.reload.account_id
+    end
   end
 end

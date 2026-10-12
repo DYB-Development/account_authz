@@ -26,11 +26,11 @@ module AccountAuthz
     end
 
     def edit
-      @role = Role.in_account(Current.account_id).find(params[:id])
+      @role = Role.in_account(Current.account_id).find_by_public_code!(params[:id])
     end
 
     def update
-      role = Role.in_account(Current.account_id).find(params[:id])
+      role = Role.in_account(Current.account_id).find_by_public_code!(params[:id])
       return refuse(:role_edit_out_of_reach, back_to: roles_path) unless reach.includes_role?(role)
       return refuse(:rank_out_of_reach, back_to: edit_role_path(role)) if role_params.key?(:rank) && !reach.includes_rank?(role_params[:rank])
       return refuse(:capabilities_out_of_reach, back_to: edit_role_path(role)) unless reach.includes_capabilities?(Array(role_params[:capabilities]) - role.capabilities)

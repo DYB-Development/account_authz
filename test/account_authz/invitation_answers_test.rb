@@ -25,5 +25,35 @@ module AccountAuthz
 
       assert_empty AccountAuthz.members_source.invitations(1)
     end
+
+    test "sending again asks a source that answers the invitation lookup for the invitation at the address" do
+      with_invitation_lookup do
+        ResendInvitation.new(person: @manager, account: 1, values: { invitation_id: "pretend-token" }).call
+      end
+
+      assert_equal 2, @invitation.reload.sent_count
+    end
+
+    test "cancelling asks a source that answers the invitation lookup for the invitation at the address" do
+      with_invitation_lookup do
+        CancelInvitation.new(person: @manager, account: 1, values: { invitation_id: "pretend-token" }).call
+      end
+
+      assert_empty AccountAuthz.members_source.invitations(1)
+    end
+
+    private
+
+    def with_invitation_lookup
+      invitation = @invitation
+      source = Class.new(MemberDirectory) do
+        define_singleton_method(:invitation) { |account_id, address| address == "pretend-token" ? invitations(account_id).find(invitation.id) : raise(ActiveRecord::RecordNotFound) }
+      end
+      was = AccountAuthz.members_source
+      AccountAuthz.members_source = source
+      yield
+    ensure
+      AccountAuthz.members_source = was
+    end
   end
 end
