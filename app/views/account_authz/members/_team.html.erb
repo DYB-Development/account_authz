@@ -52,7 +52,7 @@
 
       <% if AccountAuthz.members_source.removable?(person_chosen) && !last_manager.lost_by_removing?(person_chosen) %>
         <%= ui_form(action: submit_urls[:remove], method: :patch) do %>
-          <%= hidden_field_tag :member_id, person_chosen.id, id: nil %>
+          <%= hidden_field_tag :member_id, person_chosen.to_param, id: nil %>
           <%= ui_button(label: "Remove from team", variant: :danger, size: :sm) %>
         <% end %>
       <% end %>

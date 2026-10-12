@@ -145,4 +145,32 @@ class TeamPartialTest < ActionView::TestCase
 
     assert_includes rendered, "?member_id=pretend-code"
   end
+
+  test "removing the chosen person sends the address the person gives" do
+    render_team_for_coded_person
+
+    assert_select "form[action='/here/remove'] input[name=member_id][value=pretend-code]"
+  end
+
+  private
+
+  def render_team_for_coded_person
+    person = ::Member.create!(account_id: 1, name: "Coded Person", email: "coded@example.com")
+    person.define_singleton_method(:to_param) { "pretend-code" }
+    source = Class.new(MemberDirectory) do
+      define_singleton_method(:member) { |_account_id, address| address == "pretend-code" ? person : raise(ActiveRecord::RecordNotFound) }
+    end
+    was = AccountAuthz.members_source
+    AccountAuthz.members_source = source
+
+    begin
+      render partial: "account_authz/members/team", locals: {
+        person: @manager, account: 1, selection: { member_id: "pretend-code" },
+        submit_urls: { invite: "/here/invite", resend: "/here/resend", cancel: "/here/cancel",
+                      give_role: "/here/give", take_role: "/here/take", remove: "/here/remove" }
+      }
+    ensure
+      AccountAuthz.members_source = was
+    end
+  end
 end
