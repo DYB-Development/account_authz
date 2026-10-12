@@ -152,6 +152,14 @@ class TeamPartialTest < ActionView::TestCase
     assert_select "form[action='/here/remove'] input[name=member_id][value=pretend-code]"
   end
 
+  test "giving the chosen person a role sends the address the person gives" do
+    AccountAuthz::Role.create!(account_id: 1, name: "Editor", capabilities: [], rank: 0)
+
+    render_team_for_coded_person
+
+    assert_select "form[action='/here/give'] input[name=member_id][value=pretend-code]"
+  end
+
   private
 
   def render_team_for_coded_person
