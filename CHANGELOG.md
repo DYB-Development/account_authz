@@ -6,6 +6,8 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-12
+
 ### Added
 - Every role carries a code from the public_code gem, given by the migration
   `AddPublicCodeToAccountAuthzRoles`, which also gives one to each role made
