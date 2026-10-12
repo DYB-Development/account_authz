@@ -17,7 +17,7 @@ module AccountAuthz
     private
 
     def invitation
-      AccountAuthz.members_source.invitations(@account).find(@values[:invitation_id])
+      AccountAuthz.find_invitation(@account, @values[:invitation_id])
     end
   end
 end

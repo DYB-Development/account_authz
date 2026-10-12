@@ -34,6 +34,14 @@ module AccountAuthz
       assert_equal 2, @invitation.reload.sent_count
     end
 
+    test "cancelling asks a source that answers the invitation lookup for the invitation at the address" do
+      with_invitation_lookup do
+        CancelInvitation.new(person: @manager, account: 1, values: { invitation_id: "pretend-token" }).call
+      end
+
+      assert_empty AccountAuthz.members_source.invitations(1)
+    end
+
     private
 
     def with_invitation_lookup
