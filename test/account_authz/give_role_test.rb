@@ -16,7 +16,7 @@ module AccountAuthz
     teardown { AccountAuthz.reset! }
 
     test "giving a role puts it on the person" do
-      GiveRole.new(person: @manager, account: 1, values: { member_id: @person.id, role_id: @role.id }).call
+      GiveRole.new(person: @manager, account: 1, values: { member_id: @person.id, role_id: @role.public_code }).call
 
       assert_includes @person.account_authz_roles.in_account(1), @role
     end
@@ -31,7 +31,7 @@ module AccountAuthz
       AccountAuthz.members_source = source
 
       begin
-        GiveRole.new(person: "Pretend Manager", account: 1, values: { member_id: @person.id, role_id: @role.id }).call
+        GiveRole.new(person: "Pretend Manager", account: 1, values: { member_id: @person.id, role_id: @role.public_code }).call
       ensure
         AccountAuthz.members_source = was
       end

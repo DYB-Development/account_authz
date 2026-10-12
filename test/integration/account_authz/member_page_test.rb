@@ -29,7 +29,7 @@ module AccountAuthz
 
       get "/account_authz/members/#{person.id}", params: { signed_in_member_id: @manager.id, account_id: 1 }
 
-      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/account_authz/members/#{person.id}/roles", role.id.to_s
+      assert_select "form[action=?][method=post] input[name=role_id][value=?]", "/account_authz/members/#{person.id}/roles", role.public_code
     end
 
     test "a manager can remove the person from the team on their page" do

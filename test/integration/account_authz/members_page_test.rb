@@ -134,7 +134,7 @@ module AccountAuthz
 
       get "/account_authz/members", params: { signed_in_member_id: manager.id, account_id: 1 }
 
-      assert_select "form[action=?] input[name=role_id][value=?]", "/account_authz/members/#{person.id}/roles", owner.id.to_s, count: 0
+      assert_select "form[action=?] input[name=role_id][value=?]", "/account_authz/members/#{person.id}/roles", owner.public_code, count: 0
     end
 
     test "the members page does not offer to take away a role ranked at or above the viewer's own" do
