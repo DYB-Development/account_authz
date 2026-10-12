@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_09_22_150000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_12_230000) do
   create_table "account_authz_assignments", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.integer "member_id", null: false
@@ -29,7 +29,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_09_22_150000) do
     t.string "name", null: false
     t.integer "rank", default: 0, null: false
     t.datetime "updated_at", null: false
+    t.string "public_code", null: false
     t.index ["account_id"], name: "index_account_authz_roles_on_account_id"
+    t.index ["public_code"], name: "index_account_authz_roles_on_public_code", unique: true
   end
 
   create_table "invitations", force: :cascade do |t|

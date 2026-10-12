@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "public_code"
 require_relative "account_authz/version"
 require_relative "account_authz/engine"
 require_relative "account_authz/catalog"

@@ -66,5 +66,11 @@ module AccountAuthz
 
       assert_equal 0, role.rank
     end
+
+    test "a saved role is addressed by a 24 character code" do
+      role = Role.create!(account_id: 1, name: "Coded Role", capabilities: [])
+
+      assert_match(/\A[a-zA-Z0-9]{24}\z/, role.to_param)
+    end
   end
 end
