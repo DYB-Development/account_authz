@@ -38,5 +38,22 @@ module AccountAuthz
 
       assert_includes @person.account_authz_roles.in_account(1), @role
     end
+
+    test "giving a role asks a source that answers the member lookup for the member at the address" do
+      person = @person
+      source = Class.new(MemberDirectory) do
+        define_singleton_method(:member) { |account_id, address| address == "pretend-code" ? members(account_id).find(person.id) : raise(ActiveRecord::RecordNotFound) }
+      end
+      was = AccountAuthz.members_source
+      AccountAuthz.members_source = source
+
+      begin
+        GiveRole.new(person: @manager, account: 1, values: { member_id: "pretend-code", role_id: @role.public_code }).call
+      ensure
+        AccountAuthz.members_source = was
+      end
+
+      assert_includes @person.account_authz_roles.in_account(1), @role
+    end
   end
 end
