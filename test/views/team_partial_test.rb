@@ -172,6 +172,12 @@ class TeamPartialTest < ActionView::TestCase
     assert_select "form[action='/here/resend'] input[name=invitation_id][value=pretend-token]"
   end
 
+  test "cancelling an invitation sends the address the invitation gives" do
+    render_team_with_tokened_invitation
+
+    assert_select "form[action='/here/cancel'] input[name=invitation_id][value=pretend-token]"
+  end
+
   private
 
   def render_team_for_coded_person(holding: nil)
