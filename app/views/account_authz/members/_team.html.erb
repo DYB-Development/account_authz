@@ -38,7 +38,7 @@
         <% (within_reach - held).each do |role| %>
           <%= ui_form(action: submit_urls[:give_role], method: :patch) do %>
             <%= hidden_field_tag :member_id, person_chosen.id, id: nil %>
-            <%= hidden_field_tag :role_id, role.id, id: nil %>
+            <%= hidden_field_tag :role_id, role.to_param, id: nil %>
             <%= ui_button(label: "Give #{role.name}", variant: :secondary, size: :sm) %>
           <% end %>
         <% end %>
