@@ -39,6 +39,12 @@ module AccountAuthz
             .map { |template| Role.from_template(account_id: account_id, template: template.name) }
   end
 
+  def self.find_member(account_id, address)
+    return members_source.member(account_id, address) if members_source.respond_to?(:member)
+
+    members_source.members(account_id).find(address)
+  end
+
   def self.reset!
     @catalog = nil
     @templates = nil
