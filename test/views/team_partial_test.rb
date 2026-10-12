@@ -166,6 +166,12 @@ class TeamPartialTest < ActionView::TestCase
     assert_select "form[action='/here/take'] input[name=member_id][value=pretend-code]"
   end
 
+  test "sending an invitation again sends the address the invitation gives" do
+    render_team_with_tokened_invitation
+
+    assert_select "form[action='/here/resend'] input[name=invitation_id][value=pretend-token]"
+  end
+
   private
 
   def render_team_for_coded_person(holding: nil)
@@ -183,6 +189,25 @@ class TeamPartialTest < ActionView::TestCase
         person: @manager, account: 1, selection: { member_id: "pretend-code" },
         submit_urls: { invite: "/here/invite", resend: "/here/resend", cancel: "/here/cancel",
                       give_role: "/here/give", take_role: "/here/take", remove: "/here/remove" }
+      }
+    ensure
+      AccountAuthz.members_source = was
+    end
+  end
+
+  def render_team_with_tokened_invitation
+    invitation = ::Invitation.create!(account_id: 1, name: "Invited Person", email: "invited@example.com")
+    invitation.define_singleton_method(:to_param) { "pretend-token" }
+    source = Class.new(MemberDirectory) do
+      define_singleton_method(:invitations) { |_account_id| [ invitation ] }
+    end
+    was = AccountAuthz.members_source
+    AccountAuthz.members_source = source
+
+    begin
+      render partial: "account_authz/members/team", locals: {
+        person: @manager, account: 1, selection: {},
+        submit_urls: { invite: "/here/invite", resend: "/here/resend", cancel: "/here/cancel" }
       }
     ensure
       AccountAuthz.members_source = was

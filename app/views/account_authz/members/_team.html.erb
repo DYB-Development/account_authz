@@ -72,7 +72,7 @@
 
 <%= ui_section(title: "Invited") do %>
   <%= ui_data_table(
-        items: invitations.map { |invitation| {invitation_id: invitation.id, name: invitation.name, email: invitation.email} },
+        items: invitations.map { |invitation| {invitation_id: invitation.to_param, name: invitation.name, email: invitation.email} },
         columns: [Keystone::Ui::Column.new(:name, "Name"), Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true)],
         empty_message: "No invitations"
       ) do |table| %>
