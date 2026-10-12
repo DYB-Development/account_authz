@@ -124,4 +124,25 @@ class TeamPartialTest < ActionView::TestCase
 
     assert_select "h2.ks-section-title", text: "Chosen Person"
   end
+
+  test "each row leads to that person by the address the person gives" do
+    person = ::Member.create!(account_id: 1, name: "Coded Person", email: "coded@example.com")
+    person.define_singleton_method(:to_param) { "pretend-code" }
+    source = Class.new(MemberDirectory) do
+      define_singleton_method(:members) { |_account_id| [ person ] }
+    end
+    was = AccountAuthz.members_source
+    AccountAuthz.members_source = source
+
+    begin
+      render partial: "account_authz/members/team", locals: {
+        person: @manager, account: 1, selection: {},
+        submit_urls: { invite: "/here/invite", resend: "/here/resend", cancel: "/here/cancel" }
+      }
+    ensure
+      AccountAuthz.members_source = was
+    end
+
+    assert_includes rendered, "?member_id=pretend-code"
+  end
 end

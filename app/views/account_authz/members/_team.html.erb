@@ -9,7 +9,7 @@
 
 <%= ui_section(title: "Team") do %>
   <%= ui_data_table(
-        items: members.map { |member| {member_id: member.id, name: member.name, email: member.email, roles: held_roles.fetch(member.id, []).map(&:name).join(", ").presence || "None"} },
+        items: members.map { |member| {member_id: member.to_param, name: member.name, email: member.email, roles: held_roles.fetch(member.id, []).map(&:name).join(", ").presence || "None"} },
         columns: [Keystone::Ui::Column.new(:name, "Name"), Keystone::Ui::Column.new(:email, "Email", mobile_hidden: true), Keystone::Ui::Column.new(:roles, "Roles")],
         empty_message: "No members yet"
       ) do |table| %>
