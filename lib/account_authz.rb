@@ -45,6 +45,12 @@ module AccountAuthz
     members_source.members(account_id).find(address)
   end
 
+  def self.find_invitation(account_id, address)
+    return members_source.invitation(account_id, address) if members_source.respond_to?(:invitation)
+
+    members_source.invitations(account_id).find(address)
+  end
+
   def self.reset!
     @catalog = nil
     @templates = nil
