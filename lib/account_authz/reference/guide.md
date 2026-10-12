@@ -116,6 +116,17 @@ layout the host's `ApplicationController` uses, so the host loads keystone_ui's
 styles. Route helpers in that layout, such as `root_path`, reach the host's own
 routes without a `main_app.` prefix.
 
+**Addresses.** Every role carries a random code from the public_code gem, and
+the role pages and the Give and Take buttons address a role by it, so a
+numbered role address is not found. Members and invitations are addressed by
+whatever `to_param` the host's records give. A source that also answers
+`member(account_id, address)` and `invitation(account_id, address)` is asked for
+the member or invitation at an address, which is how an app whose members carry
+codes, or whose invitations are addressed by a token, has them found. A source
+that answers neither has them found with `find` on `members(account_id)` and
+`invitations(account_id)`, by id. Role assignments still point at members and
+roles by id.
+
 **Role pages (engine).** The members page links to them with a Roles link
 shown only to people who hold the roles capability, and the roles page links
 back to the members page, so an app needs one navigation entry for both. At `/account_authz/roles`, a member who holds the roles

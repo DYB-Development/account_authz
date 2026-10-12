@@ -6,6 +6,23 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+### Added
+- Every role carries a code from the public_code gem, given by the migration
+  `AddPublicCodeToAccountAuthzRoles`, which also gives one to each role made
+  before it. Run `bin/rails account_authz:install:migrations` and migrate.
+- A members source may answer `member(account_id, address)`, and the members
+  pages, the team section and the Give, Take and Remove actions then ask it for
+  the member at an address instead of finding one by id.
+- A members source may answer `invitation(account_id, address)`, and Send again
+  and Cancel then ask it for the invitation at an address instead of finding
+  one by id.
+
+### Changed
+- The role pages and the Give and Take buttons address a role by its code, and
+  a numbered role address is not found.
+- The team section links each member, and sends each member, role and
+  invitation, by the address the record gives instead of its id.
+
 ## [0.1.2] - 2026-09-30
 
 ### Fixed
