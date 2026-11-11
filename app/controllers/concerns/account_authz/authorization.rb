@@ -6,6 +6,8 @@ module AccountAuthz
   module Authorization
     extend ActiveSupport::Concern
 
+    EVERY_MEMBER = :every_member
+
     included do
       include Pundit::Authorization
       helper_method :can?
@@ -20,6 +22,10 @@ module AccountAuthz
       def requires_permission(capability, only:)
         self.action_permissions = action_permissions.merge(Array(only).to_h { |action| [action.to_s, capability] })
       end
+
+      def open_to_every_member(only:, reason:)
+        requires_permission(EVERY_MEMBER, only: only)
+      end
     end
 
     def can?(capability)
@@ -29,8 +35,14 @@ module AccountAuthz
     private
 
     def refuse_an_action_its_member_may_not_take
+      head :forbidden unless may_take_this_action?
+    end
+
+    def may_take_this_action?
       capability = action_permissions[action_name]
-      head :forbidden unless capability && can?(capability)
+      return current_member.present? if capability == EVERY_MEMBER
+
+      capability.present? && can?(capability)
     end
   end
 end

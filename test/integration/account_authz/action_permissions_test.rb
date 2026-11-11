@@ -36,5 +36,13 @@ module AccountAuthz
 
       assert_response :forbidden
     end
+
+    test "a member with no permissions opens an action open to every member" do
+      member = ::Member.create!
+
+      get "/ledgers", params: { signed_in_member_id: member.id, account_id: 1 }
+
+      assert_response :ok
+    end
   end
 end
