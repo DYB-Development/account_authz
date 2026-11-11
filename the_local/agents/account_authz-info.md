@@ -1,6 +1,6 @@
 ---
 name: account_authz-info
-description: Use to learn what account_authz offers — its capability catalog, account roles and ranks, members as account memberships, reach limits on who may manage whom, the rule that every account keeps a member manager, the members, member, invite and role pages and the team section with their invitations and refusal messages, how roles, members and invitations are addressed, and Pundit enforcement.
+description: Use to learn what account_authz offers — its capability catalog, account roles and ranks, members as account memberships, reach limits on who may manage whom, the rule that every account keeps a member manager, the members, member, invite and role pages and the team section with their invitations and refusal messages, how roles, members and invitations are addressed, refusing every controller action that names no permission, and Pundit enforcement.
 tools: Read
 scope: authorization — capability catalog, roles, and Pundit enforcement in multi-tenant Rails apps
 ---
@@ -51,6 +51,9 @@ two locals:
   - declaring the catalog, defining roles and templates, seeding them, and
     assigning roles to members;
   - checking capabilities and approved metrics, and writing policies;
+  - making a host controller refuse every action that names no permission,
+    naming the permission each action needs, opening an action to every
+    signed-in member, and choosing how a refused action answers;
   - asking whether a manager's rank reaches a member or a role, whether an editor
     may put a set of capabilities or a rank on a role, and whether a change would
     remove the account's last member manager;
@@ -73,6 +76,8 @@ Decide which of the two you need, then go there.
   **account_authz-install**.
 - AccountAuthz is connected and you are adding a capability, a role, a template, or a
   check on an action: use **account_authz-develop**.
+- AccountAuthz is connected and you want a controller to refuse any action
+  that does not name its permission: use **account_authz-develop**.
 - AccountAuthz is connected and you are setting up the members pages, their
   invitations and removals, how members and invitations are found by address,
   or the role pages: use **account_authz-develop**.
@@ -229,6 +234,21 @@ Decide which of the two you need, then go there.
   the app names another.
 - **Roles capability** — the capability a person needs to open the role pages and
   to create or change roles there, `manage_roles` unless the app names another.
+- **Permission per action** — a host controller can turn on a rule that refuses
+  each of its actions unless the action names the permission it needs. It
+  covers that controller and every controller that inherits from it, and a
+  subclass keeps the permissions its parent named and may name more. An action
+  naming a permission is open only to a member who holds it in the current
+  account, so it is refused when no current account is set. An action that
+  names no permission is refused, so a new action stays closed until someone
+  names one.
+- **Open to every member** — an action marked as needing no permission, which
+  any signed-in member may open whatever roles they hold, even with no current
+  account set. Marking an action this way requires a written reason.
+- **Refused action** — an action the permission-per-action rule turns away. It
+  answers 403 Forbidden unless the controller chooses another answer, such as
+  not found. The engine's own pages inherit from the host's base controller and
+  name no permissions, so turning the rule on there refuses them too.
 - **Forbidden** — a person without the page's capability, or a request with no
   current account, gets a forbidden response from any engine page. Another
   account's roles, members and waiting invitations cannot be read or changed from

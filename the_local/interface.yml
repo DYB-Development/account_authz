@@ -43,6 +43,10 @@ develop:
   - last_manager.lost_by_taking?
   - last_manager.lost_by_removing?
   - last_manager.lost_by_changing?
+  - refuse_actions_without_a_permission
+  - requires_permission
+  - open_to_every_member
+  - refuse_the_action
 
 sources:
   - lib/account_authz.rb

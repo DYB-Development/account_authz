@@ -34,6 +34,41 @@ AccountAuthz.can?(grants, :view_fulfillment)   # => true/false
 AccountAuthz.approved_metrics(grants)          # => [:revenue, :deals]
 ```
 
+## A permission for every action
+
+A controller that includes `AccountAuthz::Authorization` can refuse every
+action that does not name the permission it needs:
+
+```ruby
+class LedgersController < ApplicationController
+  include AccountAuthz::Authorization
+
+  refuse_actions_without_a_permission
+  requires_permission :revenue, only: :show
+  open_to_every_member only: :index, reason: "Every member reads the list of ledgers."
+end
+```
+
+- `refuse_actions_without_a_permission` refuses every action of the controller
+  and its subclasses unless the action names a permission and the current
+  member holds it in the current account.
+- `requires_permission :capability, only: [:actions]` names the permission
+  those actions need.
+- `open_to_every_member only: [:actions], reason: "..."` lets any signed-in
+  member open those actions, whatever permissions they hold.
+- A refused action answers 403 Forbidden. A controller answers differently by
+  overriding the private method `refuse_the_action`:
+
+```ruby
+class HiddenLedgersController < LedgersController
+  private
+
+  def refuse_the_action
+    head :not_found
+  end
+end
+```
+
 ## Installation
 
 ```ruby
