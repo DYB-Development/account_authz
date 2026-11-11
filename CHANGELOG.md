@@ -6,6 +6,8 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-11-11
+
 ### Added
 - A controller including `AccountAuthz::Authorization` may call
   `refuse_actions_without_a_permission`, and every action of it and its
