@@ -27,5 +27,14 @@ module AccountAuthz
 
       assert_response :forbidden
     end
+
+    test "an action that names no permission is refused" do
+      member = ::Member.create!
+      member.assign_role(Role.create!(account_id: 1, name: "Sales", capabilities: %w[revenue]))
+
+      get "/ledger/edit", params: { signed_in_member_id: member.id, account_id: 1 }
+
+      assert_response :forbidden
+    end
   end
 end

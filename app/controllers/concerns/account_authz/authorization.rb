@@ -29,7 +29,8 @@ module AccountAuthz
     private
 
     def refuse_an_action_its_member_may_not_take
-      head :forbidden unless can?(action_permissions.fetch(action_name))
+      capability = action_permissions[action_name]
+      head :forbidden unless capability && can?(capability)
     end
   end
 end

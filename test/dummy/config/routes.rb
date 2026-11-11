@@ -3,4 +3,5 @@ Rails.application.routes.draw do
 
   get "reports" => "reports#show"
   get "ledger" => "ledgers#show"
+  get "ledger/edit" => "ledgers#edit"
 end

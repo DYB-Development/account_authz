@@ -9,4 +9,8 @@ class LedgersController < ApplicationController
   def show
     render plain: "ledger"
   end
+
+  def edit
+    render plain: "editing"
+  end
 end
