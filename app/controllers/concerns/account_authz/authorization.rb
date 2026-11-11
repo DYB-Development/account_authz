@@ -20,7 +20,7 @@ module AccountAuthz
       end
 
       def requires_permission(capability, only:)
-        self.action_permissions = action_permissions.merge(Array(only).to_h { |action| [action.to_s, capability] })
+        self.action_permissions = action_permissions.merge(Array(only).to_h { |action| [ action.to_s, capability ] })
       end
 
       def open_to_every_member(only:, reason:)
