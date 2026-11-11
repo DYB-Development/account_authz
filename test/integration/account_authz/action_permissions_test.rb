@@ -19,5 +19,13 @@ module AccountAuthz
 
       assert_response :ok
     end
+
+    test "a member without an action's permission is refused" do
+      member = ::Member.create!
+
+      get "/ledger", params: { signed_in_member_id: member.id, account_id: 1 }
+
+      assert_response :forbidden
+    end
   end
 end
