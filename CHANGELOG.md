@@ -6,6 +6,18 @@ All notable changes to this project are documented here, following
 
 ## [Unreleased]
 
+### Added
+- A controller including `AccountAuthz::Authorization` may call
+  `refuse_actions_without_a_permission`, and every action of it and its
+  subclasses is then refused unless the action names a permission the current
+  member holds.
+- `requires_permission :capability, only: [:actions]` names the permission an
+  action needs.
+- `open_to_every_member only: [:actions], reason: "..."` lets any signed-in
+  member open an action.
+- A refused action answers 403 Forbidden, and a controller answers differently
+  by overriding the private method `refuse_the_action`.
+
 ## [0.2.0] - 2026-10-12
 
 ### Added
