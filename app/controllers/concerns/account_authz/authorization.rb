@@ -35,7 +35,11 @@ module AccountAuthz
     private
 
     def refuse_an_action_its_member_may_not_take
-      head :forbidden unless may_take_this_action?
+      refuse_the_action unless may_take_this_action?
+    end
+
+    def refuse_the_action
+      head :forbidden
     end
 
     def may_take_this_action?

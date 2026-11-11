@@ -44,5 +44,13 @@ module AccountAuthz
 
       assert_response :ok
     end
+
+    test "a controller chooses how a refused action answers" do
+      member = ::Member.create!
+
+      get "/hidden_ledger", params: { signed_in_member_id: member.id, account_id: 1 }
+
+      assert_response :not_found
+    end
   end
 end
